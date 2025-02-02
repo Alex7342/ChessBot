@@ -20,6 +20,6 @@ public:
 	Position DownLeft();
 	Position DownRight();
 
-	Position GoTowards(const int rowChange, const int columnChange);
+	void GoTowards(const int rowChange, const int columnChange);
 };
 

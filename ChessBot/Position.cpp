@@ -52,7 +52,8 @@ Position Position::DownRight()
     return Position(this->_row + 1, this->_column + 1);
 }
 
-Position Position::GoTowards(const int rowChange, const int columnChange)
+void Position::GoTowards(const int rowChange, const int columnChange)
 {
-    return Position(this->_row + rowChange, this->_column + columnChange);
+    this->_row += rowChange;
+    this->_column += columnChange;
 }
