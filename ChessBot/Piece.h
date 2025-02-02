@@ -5,13 +5,23 @@
 class Piece
 {
 public:
+	enum Type
+	{
+		PAWN,
+		BISHOP,
+		KNIGHT,
+		ROOK,
+		QUEEN,
+		KING
+	};
+
 	enum Color
 	{
 		WHITE,
 		BLACK
 	};
 
-	Piece(Position position, Piece::Color color, bool hasMoved = false);
+	Piece(Piece::Type type, Piece::Color color, Position position, bool hasMoved = false);
 
 	Position getPosition();
 	Piece::Color getColor();
@@ -19,8 +29,9 @@ public:
 	bool hasMoved();
 
 private:
-	Position position;
+	Piece::Type type;
 	Piece::Color color;
+	Position position;
 	bool _hasMoved;
 };
 
