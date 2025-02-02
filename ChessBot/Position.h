@@ -19,5 +19,7 @@ public:
 	Position UpRight();
 	Position DownLeft();
 	Position DownRight();
+
+	Position GoTowards(const int rowChange, const int columnChange);
 };
 
