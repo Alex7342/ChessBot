@@ -9,6 +9,7 @@ private:
 	Position targetPosition;
 
 public:
+	Move(const Position initialPosition, const Position targetPosition);
 	Position getInitialPosition();
 	Position getTargetPosition();
 };
