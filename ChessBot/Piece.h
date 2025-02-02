@@ -11,9 +11,10 @@ public:
 		BLACK
 	};
 
+	Piece(Position position, Piece::Color color, bool hasMoved = false);
+
 	Position getPosition();
 	Piece::Color getColor();
-	virtual std::vector<Move> getMoves() = 0;
 	void move(Position targetPosition);
 	bool hasMoved();
 

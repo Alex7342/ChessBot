@@ -1,5 +1,7 @@
 #include "Piece.h"
 
+Piece::Piece(Position position, Piece::Color color, bool hasMoved) : position(position), color(color), _hasMoved(hasMoved) {}
+
 Position Piece::getPosition()
 {
 	return this->position;
