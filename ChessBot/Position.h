@@ -7,7 +7,17 @@ private:
 
 public:
 	Position(const int row, const int column);
+	
 	int row();
 	int column();
+	
+	Position Up();
+	Position Down();
+	Position Left();
+	Position Right();
+	Position UpLeft();
+	Position UpRight();
+	Position DownLeft();
+	Position DownRight();
 };
 
