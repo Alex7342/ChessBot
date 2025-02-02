@@ -25,8 +25,9 @@ public:
 
 	Piece(Piece::Type type, Piece::Color color, Position position, bool hasMoved = false);
 
-	Position getPosition();
+	Piece::Type getType();
 	Piece::Color getColor();
+	Position getPosition();
 	void move(Position targetPosition);
 	bool hasMoved();
 

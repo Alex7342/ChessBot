@@ -8,6 +8,11 @@ Position Piece::getPosition()
 	return this->position;
 }
 
+Piece::Type Piece::getType()
+{
+	return this->type;
+}
+
 Piece::Color Piece::getColor()
 {
 	return this->color;
