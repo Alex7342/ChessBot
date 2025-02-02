@@ -7,18 +7,20 @@ class Piece
 public:
 	enum Type
 	{
-		PAWN,
-		BISHOP,
-		KNIGHT,
-		ROOK,
-		QUEEN,
-		KING
+		NONE = 0,
+		PAWN = 1,
+		BISHOP = 2,
+		KNIGHT = 3,
+		ROOK = 4,
+		QUEEN = 5,
+		KING = 6
 	};
 
 	enum Color
 	{
-		WHITE,
-		BLACK
+		NONE = 0,
+		WHITE = 1,
+		BLACK = 2
 	};
 
 	Piece(Piece::Type type, Piece::Color color, Position position, bool hasMoved = false);
