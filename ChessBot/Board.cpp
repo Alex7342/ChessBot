@@ -322,3 +322,43 @@ std::vector<Move> Board::getWhiteMoves()
 
 	return moves;
 }
+
+std::vector<Move> Board::getBlackMoves()
+{
+	std::vector<Move> moves;
+
+	for (auto piece : this->blackPieces)
+	{
+		switch (piece.getType())
+		{
+		case Piece::Type::PAWN:
+			this->addPawnMoves(moves, piece);
+			break;
+
+		case Piece::Type::BISHOP:
+			this->addBishopMoves(moves, piece);
+			break;
+
+		case Piece::Type::KNIGHT:
+			this->addKnightMoves(moves, piece);
+			break;
+
+		case Piece::Type::ROOK:
+			this->addRookMoves(moves, piece);
+			break;
+
+		case Piece::Type::QUEEN:
+			this->addRookMoves(moves, piece);
+			break;
+
+		case Piece::Type::KING:
+			this->addKingMoves(moves, piece);
+			break;
+
+		default:
+			break;
+		}
+	}
+
+	return moves;
+}

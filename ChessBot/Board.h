@@ -28,5 +28,6 @@ private:
 public:
 	Board();
 	std::vector<Move> getWhiteMoves();
+	std::vector<Move> getBlackMoves();
 };
 
