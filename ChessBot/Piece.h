@@ -18,7 +18,7 @@ public:
 
 	enum Color
 	{
-		NONE = 0,
+		UNCOLORED = 0,
 		WHITE = 1,
 		BLACK = 2
 	};
