@@ -8,7 +8,7 @@
 class Board
 {
 private:
-	enum Actions
+	enum Action
 	{
 		SEPARATOR = 0,
 		REMOVE_PIECE = 1,
@@ -17,14 +17,15 @@ private:
 
 	Piece board[8][8];
 
-	// TODO Hash function for Position
-	std::set<Position> whiteSquares;
-	std::set<Position> blackSquares;
+	// Two sets that contain the occupied squares of each color (index 0 for white, index 1 for black)
+	std::set<Position> occupiedSquares[2];
 
 	// Stack that keeps track of all actions made (used for reverting them)
-	std::stack<Actions> actionsMade;
+	std::stack<Action> actionsMade;
 
+	// Helper stacks that keeps track of removed pieces and moves made
 	std::stack<Piece> removedPieces;
+	std::stack<Move> movesMade;
 
 	// Helper functions that need access to the board
 	bool availableSquare(const Piece::Color color, const int row, const int column);
@@ -41,9 +42,9 @@ public:
 
 	Piece getPiece(const Position position);
 
-	std::vector<Move> getWhiteMoves();
-	std::vector<Move> getBlackMoves();
+	std::vector<Move> getMoves(const Piece::Color playerColor);
 
 	void makeMove(Move move);
+	void undoMove();
 };
 

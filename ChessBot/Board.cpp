@@ -1,6 +1,11 @@
 #include "Board.h"
 #include "Move.h"
 
+int getColorIndex(const Piece::Color color)
+{
+	return color == Piece::Color::WHITE ? 0 : 1;
+}
+
 Board::Board()
 {
 	// Add pawns
@@ -59,13 +64,11 @@ Board::Board()
 	for (int i = 0; i < 8; i++)
 		for (int j = 0; j < 8; j++)
 		{
-			if (this->board[i][j].getColor() == Piece::Color::WHITE)
+			Piece piece = this->board[i][j];
+			if (piece.getType() != Piece::Type::NONE)
 			{
-				this->whiteSquares.insert(this->board[i][j].getPosition());
-			}
-			else if (this->board[i][j].getColor() == Piece::Color::BLACK)
-			{
-				this->blackSquares.insert(this->board[i][j].getPosition());
+				int index = getColorIndex(piece.getColor());
+				this->occupiedSquares[index].insert(this->board[i][j].getPosition());
 			}
 		}
 }
@@ -279,11 +282,12 @@ void Board::addKingMoves(std::vector<Move>& moves, Piece piece)
 	// TODO Implement castle
 }
 
-std::vector<Move> Board::getWhiteMoves()
+std::vector<Move> Board::getMoves(const Piece::Color playerColor)
 {
+	int index = getColorIndex(playerColor);
 	std::vector<Move> moves;
 
-	for (Position position : this->whiteSquares)
+	for (Position position : this->occupiedSquares[index])
 	{
 		Piece piece = this->getPiece(position);
 		switch (piece.getType())
@@ -305,50 +309,9 @@ std::vector<Move> Board::getWhiteMoves()
 			break;
 
 		case Piece::Type::QUEEN:
-			this->addRookMoves(moves, piece);
+			this->addQueenMoves(moves, piece);
 			break;
 			
-		case Piece::Type::KING:
-			this->addKingMoves(moves, piece);
-			break;
-
-		default:
-			break;
-		}
-	}
-
-	return moves;
-}
-
-std::vector<Move> Board::getBlackMoves()
-{
-	std::vector<Move> moves;
-
-	for (Position position : this->blackSquares)
-	{
-		Piece piece = this->getPiece(position);
-		switch (piece.getType())
-		{
-		case Piece::Type::PAWN:
-			this->addPawnMoves(moves, piece);
-			break;
-
-		case Piece::Type::BISHOP:
-			this->addBishopMoves(moves, piece);
-			break;
-
-		case Piece::Type::KNIGHT:
-			this->addKnightMoves(moves, piece);
-			break;
-
-		case Piece::Type::ROOK:
-			this->addRookMoves(moves, piece);
-			break;
-
-		case Piece::Type::QUEEN:
-			this->addRookMoves(moves, piece);
-			break;
-
 		case Piece::Type::KING:
 			this->addKingMoves(moves, piece);
 			break;
@@ -372,27 +335,92 @@ void Board::makeMove(Move move)
 	// If the target square is occupied by another piece, then remove it
 	if (pieceToGetRemoved.getType() != Piece::Type::NONE)
 	{
-		this->actionsMade.push(Actions::REMOVE_PIECE); // Mark the removal of a piece
+		this->actionsMade.push(Action::REMOVE_PIECE); // Mark the removal of a piece
 		this->removedPieces.push(pieceToGetRemoved); // Store the removed piece on a separate stack
 
 		this->board[targetPosition.row()][targetPosition.column()] = Piece(targetPosition); // Empty the board square
 		
 		// Unmark the previously occupied square
-		if (pieceToGetRemoved.getColor() == Piece::Color::WHITE)
-			this->whiteSquares.erase(pieceToGetRemoved.getPosition());
-		else
-			this->blackSquares.erase(pieceToGetRemoved.getPosition());
+		int colorIndex = getColorIndex(pieceToGetRemoved.getColor());
+		this->occupiedSquares[colorIndex].erase(targetPosition);
 	}
 
 	// The target square gets the piece from the initial one
-	this->actionsMade.push(Actions::MOVE_PIECE); // Mark the movement of a piece
+	this->actionsMade.push(Action::MOVE_PIECE); // Mark the movement of a piece
 	pieceToMove.move(targetPosition); // Perform the move on the piece object
 	this->board[targetPosition.row()][targetPosition.column()] = pieceToMove; // Store the move on the board
 
 	// Empty the initial square
 	this->board[initialPosition.row()][initialPosition.column()] = Piece(initialPosition); // Empty the square from which the piece moved
 
+	// Modify the position stored in occupiedSquares
+	int colorIndex = getColorIndex(pieceToMove.getColor());
+	this->occupiedSquares[colorIndex].erase(initialPosition);
+	this->occupiedSquares[colorIndex].insert(targetPosition);
+
 	// Add a separator to the stack to mark the end of the move
-	this->actionsMade.push(Actions::SEPARATOR);
+	this->actionsMade.push(Action::SEPARATOR);
+
+	// Store the move on a stack
+	this->movesMade.push(move);
+}
+
+void Board::undoMove()
+{
+	if (this->actionsMade.empty())
+		return;
+
+	// Pop the separator
+	if (this->actionsMade.top() == Action::SEPARATOR)
+		this->actionsMade.pop();
+	
+	while (!this->actionsMade.empty())
+	{
+		Action action = this->actionsMade.top();
+		if (action == Action::SEPARATOR) // The undo is complete, leave a separator on top of stack
+			break;
+
+		// Remove action from stack
+		this->actionsMade.pop();
+
+		if (action == Action::REMOVE_PIECE)
+		{
+			// Get the last removed piece
+			Piece removedPiece = this->removedPieces.top();
+			this->removedPieces.pop();
+
+			// Add the piece back on the board
+			Position position = removedPiece.getPosition();
+			this->board[position.row()][position.column()] = removedPiece;
+
+			// Update occupiedSquares
+			int index = getColorIndex(removedPiece.getColor());
+			this->occupiedSquares[index].insert(position);
+		}
+		else if (action == Action::MOVE_PIECE)
+		{
+			// Get the last applied move
+			Move move = this->movesMade.top();
+			this->movesMade.pop();
+
+			Position initialPosition = move.getInitialPosition();
+			Position targetPosition = move.getTargetPosition();
+
+			// Get the piece we are working with
+			Piece piece = this->board[targetPosition.row()][targetPosition.column()];
+
+
+			piece.move(initialPosition); // Perform the inverse move on the piece
+			this->board[initialPosition.row()][initialPosition.column()] = piece; // Store the piece on the board
+
+			// Empty the target square
+			this->board[targetPosition.row()][targetPosition.column()] = Piece(targetPosition);
+
+			// Update occupiedSquares
+			int index = getColorIndex(piece.getColor());
+			this->occupiedSquares[index].erase(targetPosition);
+			this->occupiedSquares[index].insert(initialPosition);
+		}
+	}
 }
 
