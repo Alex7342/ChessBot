@@ -23,6 +23,7 @@ public:
 		BLACK = 2
 	};
 
+	Piece();
 	Piece(Piece::Type type, Piece::Color color, Position position, bool hasMoved = false);
 
 	Piece::Type getType() const;
