@@ -61,11 +61,11 @@ Board::Board()
 		{
 			if (this->board[i][j].getColor() == Piece::Color::WHITE)
 			{
-				this->whiteSquares.push_back(this->board[i][j].getPosition());
+				this->whiteSquares.insert(this->board[i][j].getPosition());
 			}
 			else if (this->board[i][j].getColor() == Piece::Color::BLACK)
 			{
-				this->blackSquares.push_back(this->board[i][j].getPosition());
+				this->blackSquares.insert(this->board[i][j].getPosition());
 			}
 		}
 }
@@ -361,30 +361,38 @@ std::vector<Move> Board::getBlackMoves()
 	return moves;
 }
 
-/*void Board::makeMove(Move move)
+void Board::makeMove(Move move)
 {
 	Position initialPosition = move.getInitialPosition();
 	Position targetPosition = move.getTargetPosition();
 
-	auto& initialSquare = this->board[initialPosition.row()][initialPosition.column()];
-	auto& targetSquare = this->board[targetPosition.row()][targetPosition.column()];
+	auto pieceToMove = this->board[initialPosition.row()][initialPosition.column()];
+	auto pieceToGetRemoved = this->board[targetPosition.row()][targetPosition.column()];
 
 	// If the target square is occupied by another piece, then remove it
-	if (targetSquare.type != Piece::Type::NONE)
+	if (pieceToGetRemoved.getType() != Piece::Type::NONE)
 	{
 		this->actionsMade.push(Actions::REMOVE_PIECE); // Mark the removal of a piece
-		this->removedPieces.push(this->getPiece(targetPosition, targetSquare.color));
-		this->removePiece(targetPosition, targetSquare.color);
+		this->removedPieces.push(pieceToGetRemoved); // Store the removed piece on a separate stack
+
+		this->board[targetPosition.row()][targetPosition.column()] = Piece(targetPosition); // Empty the board square
+		
+		// Unmark the previously occupied square
+		if (pieceToGetRemoved.getColor() == Piece::Color::WHITE)
+			this->whiteSquares.erase(pieceToGetRemoved.getPosition());
+		else
+			this->blackSquares.erase(pieceToGetRemoved.getPosition());
 	}
 
 	// The target square gets the piece from the initial one
-	targetSquare = initialSquare;
-
-	// Move the piece object stored in one of the vectors
-	Piece& piece = this->getPiece(initialPosition, initialSquare.color);
-	piece.move(targetPosition);
+	this->actionsMade.push(Actions::MOVE_PIECE); // Mark the movement of a piece
+	pieceToMove.move(targetPosition); // Perform the move on the piece object
+	this->board[targetPosition.row()][targetPosition.column()] = pieceToMove; // Store the move on the board
 
 	// Empty the initial square
-	initialSquare = { Piece::Type::NONE, Piece::Color::UNCOLORED };
-}*/
+	this->board[initialPosition.row()][initialPosition.column()] = Piece(initialPosition); // Empty the square from which the piece moved
+
+	// Add a separator to the stack to mark the end of the move
+	this->actionsMade.push(Actions::SEPARATOR);
+}
 

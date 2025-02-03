@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <stack>
+#include <unordered_set>
 #include "Piece.h"
 #include "Move.h"
 
@@ -12,16 +13,18 @@ private:
 		SEPARATOR = 0,
 		REMOVE_PIECE = 1,
 		MOVE_PIECE = 2,
-		MODIFY_SQUARE = 3
 	};
 
 	Piece board[8][8];
 
-	std::vector<Position> whiteSquares;
-	std::vector<Position> blackSquares;
+	// TODO Hash function for Position
+	std::unordered_set<Position> whiteSquares;
+	std::unordered_set<Position> blackSquares;
 
 	// Stack that keeps track of all actions made (used for reverting them)
 	std::stack<Actions> actionsMade;
+
+	std::stack<Piece> removedPieces;
 
 	// Helper functions that need access to the board
 	bool availableSquare(const Piece::Color color, const int row, const int column);
@@ -41,6 +44,6 @@ public:
 	std::vector<Move> getWhiteMoves();
 	std::vector<Move> getBlackMoves();
 
-	//void makeMove(Move move);
+	void makeMove(Move move);
 };
 
