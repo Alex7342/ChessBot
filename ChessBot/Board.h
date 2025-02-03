@@ -1,7 +1,7 @@
 #pragma once
 #include <vector>
 #include <stack>
-#include <unordered_set>
+#include <set>
 #include "Piece.h"
 #include "Move.h"
 
@@ -18,8 +18,8 @@ private:
 	Piece board[8][8];
 
 	// TODO Hash function for Position
-	std::unordered_set<Position> whiteSquares;
-	std::unordered_set<Position> blackSquares;
+	std::set<Position> whiteSquares;
+	std::set<Position> blackSquares;
 
 	// Stack that keeps track of all actions made (used for reverting them)
 	std::stack<Actions> actionsMade;
