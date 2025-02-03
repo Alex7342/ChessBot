@@ -25,11 +25,13 @@ public:
 
 	Piece(Piece::Type type, Piece::Color color, Position position, bool hasMoved = false);
 
-	Piece::Type getType();
-	Piece::Color getColor();
-	Position getPosition();
+	Piece::Type getType() const;
+	Piece::Color getColor() const;
+	Position getPosition() const;
+	bool hasMoved() const;
 	void move(Position targetPosition);
-	bool hasMoved();
+
+	bool operator ==(const Piece& other) const;
 
 private:
 	Piece::Type type;
