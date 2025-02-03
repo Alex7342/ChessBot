@@ -87,13 +87,13 @@ bool validPosition(const int row, const int column)
 
 
 // Check if a given position is on the board
-bool validPosition(Position position)
+bool validPosition(const Position position)
 {
 	return 0 <= position.row() && position.row() < 8 && 0 <= position.column() && position.column() < 8;
 }
 
 // Check if any piece of the given color can move the given square assuming it has access to it (NOT SUITABLE FOR PAWNS)
-bool Board::availableSquare(Piece::Color color, const int row, const int column)
+bool Board::availableSquare(const Piece::Color color, const int row, const int column)
 {
 	if (!validPosition(row, column)) // Return false if the position is out of the board
 		return false;
@@ -110,7 +110,7 @@ bool Board::availableSquare(Piece::Color color, const int row, const int column)
 }
 
 // Add all possible moves of a piece in a direction to a container reference given as a parameter
-void Board::addAllMovesInDirection(std::vector<Move>& moves, Piece piece, const int rowChange, const int columnChange)
+void Board::addAllMovesInDirection(std::vector<Move>& moves, const Piece piece, const int rowChange, const int columnChange)
 {
 	Position position = piece.getPosition();
 	while (true) // Loop until finding a stop condition
@@ -361,4 +361,65 @@ std::vector<Move> Board::getBlackMoves()
 	}
 
 	return moves;
+}
+
+Piece& Board::getPiece(const Position position, const Piece::Color color)
+{
+	if (color == Piece::Color::WHITE)
+	{
+		for (Piece& piece : this->whitePieces)
+			if (piece.getPosition() == position)
+				return piece;
+	}
+	else
+	{
+		for (Piece& piece : this->blackPieces)
+			if (piece.getPosition() == position)
+				return piece;
+	}
+}
+
+void Board::removePiece(const Position position, const Piece::Color color)
+{
+	if (color == Piece::Color::WHITE)
+	{
+		for (std::vector<Piece>::iterator it = this->whitePieces.begin(); it != this->whitePieces.end(); it++)
+			if ((*it).getPosition() == position)
+			{
+				this->whitePieces.erase(it);
+				return;
+			}
+	}
+	else
+	{
+		for (std::vector<Piece>::iterator it = this->blackPieces.begin(); it != this->blackPieces.end(); it++)
+			if ((*it).getPosition() == position)
+			{
+				this->blackPieces.erase(it);
+				return;
+			}
+	}
+}
+
+void Board::makeMove(Move move)
+{
+	Position initialPosition = move.getInitialPosition();
+	Position targetPosition = move.getTargetPosition();
+
+	auto& initialSquare = this->board[initialPosition.row()][initialPosition.column()];
+	auto& targetSquare = this->board[targetPosition.row()][targetPosition.column()];
+
+	// If the target square is occupied by another piece, then remove it
+	if (targetSquare.type != Piece::Type::NONE)
+		this->removePiece(targetPosition, targetSquare.color);
+
+	// The target square gets the piece from the initial one
+	targetSquare = initialSquare;
+
+	// Move the piece object stored in one of the vectors
+	Piece& piece = this->getPiece(initialPosition, initialSquare.color);
+	piece.move(targetPosition);
+
+	// Empty the initial square
+	initialSquare = { Piece::Type::NONE, Piece::Color::UNCOLORED };
 }
