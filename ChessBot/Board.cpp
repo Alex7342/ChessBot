@@ -411,7 +411,11 @@ void Board::makeMove(Move move)
 
 	// If the target square is occupied by another piece, then remove it
 	if (targetSquare.type != Piece::Type::NONE)
+	{
+		this->actionsMade.push(Actions::REMOVE_PIECE); // Mark the removal of a piece
+		this->removedPieces.push(this->getPiece(targetPosition, targetSquare.color));
 		this->removePiece(targetPosition, targetSquare.color);
+	}
 
 	// The target square gets the piece from the initial one
 	targetSquare = initialSquare;
@@ -422,4 +426,8 @@ void Board::makeMove(Move move)
 
 	// Empty the initial square
 	initialSquare = { Piece::Type::NONE, Piece::Color::UNCOLORED };
+}
+
+void Board::undoMove()
+{
 }
