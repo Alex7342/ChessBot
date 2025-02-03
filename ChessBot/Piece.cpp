@@ -21,6 +21,7 @@ Piece::Color Piece::getColor() const
 void Piece::move(Position targetPosition)
 {
 	this->position = targetPosition;
+	this->_hasMoved = true;
 }
 
 bool Piece::hasMoved() const
