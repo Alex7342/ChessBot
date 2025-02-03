@@ -23,5 +23,7 @@ public:
 	void GoTowards(const int rowChange, const int columnChange);
 
 	bool operator ==(const Position& other) const;
+
+	bool operator <(const Position& other) const;
 };
 
