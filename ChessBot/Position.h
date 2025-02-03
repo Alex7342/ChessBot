@@ -21,5 +21,7 @@ public:
 	Position DownRight();
 
 	void GoTowards(const int rowChange, const int columnChange);
+
+	bool operator ==(const Position& other) const;
 };
 

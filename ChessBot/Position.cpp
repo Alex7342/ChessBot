@@ -57,3 +57,8 @@ void Position::GoTowards(const int rowChange, const int columnChange)
     this->_row += rowChange;
     this->_column += columnChange;
 }
+
+bool Position::operator==(const Position& other) const
+{
+    return this->_row == other._row && this->_column == other._column;
+}
