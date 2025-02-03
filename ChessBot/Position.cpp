@@ -2,12 +2,12 @@
 
 Position::Position(const int row, const int column) : _row(row), _column(column) {}
 
-int Position::row()
+int Position::row() const
 {
     return this->_row;
 }
 
-int Position::column()
+int Position::column() const
 {
     return this->_column;
 }

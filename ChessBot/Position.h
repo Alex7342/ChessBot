@@ -8,8 +8,8 @@ private:
 public:
 	Position(const int row, const int column);
 	
-	int row();
-	int column();
+	int row() const;
+	int column() const;
 	
 	Position Up();
 	Position Down();
