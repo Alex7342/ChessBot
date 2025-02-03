@@ -15,22 +15,13 @@ private:
 		MODIFY_SQUARE = 3
 	};
 
-	struct Square
-	{
-		Piece::Type type;
-		Piece::Color color;
-	} board[8][8];
+	Piece board[8][8];
 
-	std::vector<Piece> whitePieces;
-	std::vector<Piece> blackPieces;
+	std::vector<Position> whiteSquares;
+	std::vector<Position> blackSquares;
 
 	// Stack that keeps track of all actions made (used for reverting them)
 	std::stack<Actions> actionsMade;
-
-	// Helper stacks for reverting changes
-	std::stack<Piece> removedPieces;
-	std::stack<Move> movedPieces;
-	std::stack<Square> modifiedSquares;
 
 	// Helper functions that need access to the board
 	bool availableSquare(const Piece::Color color, const int row, const int column);
@@ -45,13 +36,11 @@ private:
 public:
 	Board();
 
+	Piece getPiece(const Position position);
+
 	std::vector<Move> getWhiteMoves();
 	std::vector<Move> getBlackMoves();
 
-	Piece& getPiece(const Position position, const Piece::Color color);
-	void removePiece(const Position position, const Piece::Color color);
-
-	void makeMove(Move move);
-	void undoMove();
+	//void makeMove(Move move);
 };
 

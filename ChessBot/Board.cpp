@@ -7,76 +7,72 @@ Board::Board()
 	for (int j = 0; j < 8; j++)
 	{
 		// Black
-		this->blackPieces.push_back(Piece(Piece::Type::PAWN, Piece::Color::BLACK, Position(1, j), false));
-		this->board[1][j] = { Piece::Type::PAWN, Piece::Color::BLACK };
+		this->board[1][j] = Piece(Piece::Type::PAWN, Piece::Color::BLACK, Position(1, j), false);
 
 		// White
-		this->whitePieces.push_back(Piece(Piece::Type::PAWN, Piece::Color::WHITE, Position(6, j), false));
-		this->board[6][j] = { Piece::Type::PAWN, Piece::Color::WHITE };
+		this->board[6][j] = Piece(Piece::Type::PAWN, Piece::Color::WHITE, Position(6, j), false);
 	}
 
 	// Add black rooks
-	this->blackPieces.push_back(Piece(Piece::Type::ROOK, Piece::Color::BLACK, Position(0, 0), false));
-	this->board[0][0] = { Piece::Type::ROOK, Piece::Color::BLACK };
+	this->board[0][0] = Piece(Piece::Type::ROOK, Piece::Color::BLACK, Position(0, 0), false);
 
-	this->blackPieces.push_back(Piece(Piece::Type::ROOK, Piece::Color::BLACK, Position(0, 7), false));
-	this->board[0][7] = { Piece::Type::ROOK, Piece::Color::BLACK };
+	this->board[0][7] = Piece(Piece::Type::ROOK, Piece::Color::BLACK, Position(0, 7), false);
 
 	// Add white rooks
-	this->whitePieces.push_back(Piece(Piece::Type::ROOK, Piece::Color::WHITE, Position(7, 0), false));
-	this->board[7][0] = { Piece::Type::ROOK, Piece::Color::WHITE };
-
-	this->whitePieces.push_back(Piece(Piece::Type::ROOK, Piece::Color::WHITE, Position(7, 7), false));
-	this->board[7][7] = { Piece::Type::ROOK, Piece::Color::WHITE };
+	this->board[7][0] = Piece(Piece::Type::ROOK, Piece::Color::WHITE, Position(7, 0), false);
+	this->board[7][7] = Piece(Piece::Type::ROOK, Piece::Color::WHITE, Position(7, 7), false);
 
 	// Add black knights
-	this->blackPieces.push_back(Piece(Piece::Type::KNIGHT, Piece::Color::BLACK, Position(0, 1), false));
-	this->board[0][1] = { Piece::Type::KNIGHT, Piece::Color::BLACK };
-
-	this->blackPieces.push_back(Piece(Piece::Type::KNIGHT, Piece::Color::BLACK, Position(0, 6), false));
-	this->board[0][6] = { Piece::Type::KNIGHT, Piece::Color::BLACK };
+	this->board[0][1] = Piece(Piece::Type::KNIGHT, Piece::Color::BLACK, Position(0, 1), false);
+	this->board[0][6] = Piece(Piece::Type::KNIGHT, Piece::Color::BLACK, Position(0, 6), false);
 
 	// Add white knights
-	this->whitePieces.push_back(Piece(Piece::Type::KNIGHT, Piece::Color::WHITE, Position(7, 1), false));
-	this->board[7][1] = { Piece::Type::KNIGHT, Piece::Color::WHITE };
-
-	this->whitePieces.push_back(Piece(Piece::Type::KNIGHT, Piece::Color::WHITE, Position(7, 6), false));
-	this->board[7][6] = { Piece::Type::KNIGHT, Piece::Color::WHITE };
+	this->board[7][1] = Piece(Piece::Type::KNIGHT, Piece::Color::WHITE, Position(7, 1), false);
+	this->board[7][6] = Piece(Piece::Type::KNIGHT, Piece::Color::WHITE, Position(7, 6), false);
 
 	// Add black bishops
-	this->blackPieces.push_back(Piece(Piece::Type::BISHOP, Piece::Color::BLACK, Position(0, 2), false));
-	this->board[0][2] = { Piece::Type::BISHOP, Piece::Color::BLACK };
-
-	this->blackPieces.push_back(Piece(Piece::Type::BISHOP, Piece::Color::BLACK, Position(0, 5), false));
-	this->board[0][5] = { Piece::Type::BISHOP, Piece::Color::BLACK };
+	this->board[0][2] = Piece(Piece::Type::BISHOP, Piece::Color::BLACK, Position(0, 2), false);
+	this->board[0][5] = Piece(Piece::Type::BISHOP, Piece::Color::BLACK, Position(0, 5), false);
 
 	// Add white bishops
-	this->whitePieces.push_back(Piece(Piece::Type::BISHOP, Piece::Color::WHITE, Position(7, 2), false));
-	this->board[7][2] = { Piece::Type::BISHOP, Piece::Color::WHITE };
-
-	this->whitePieces.push_back(Piece(Piece::Type::BISHOP, Piece::Color::WHITE, Position(7, 5), false));
-	this->board[7][5] = { Piece::Type::BISHOP, Piece::Color::WHITE };
+	this->board[7][2] = Piece(Piece::Type::BISHOP, Piece::Color::WHITE, Position(7, 2), false);
+	this->board[7][5] = Piece(Piece::Type::BISHOP, Piece::Color::WHITE, Position(7, 5), false);
 
 	// Add black queen
-	this->blackPieces.push_back(Piece(Piece::Type::QUEEN, Piece::Color::BLACK, Position(0, 3), false));
-	this->board[0][3] = { Piece::Type::QUEEN, Piece::Color::BLACK };
+	this->board[0][3] = Piece(Piece::Type::QUEEN, Piece::Color::BLACK, Position(0, 3), false);
 
 	// Add white queen
-	this->whitePieces.push_back(Piece(Piece::Type::QUEEN, Piece::Color::WHITE, Position(7, 3), false));
-	this->board[7][3] = { Piece::Type::QUEEN, Piece::Color::WHITE };
+	this->board[7][3] = Piece(Piece::Type::QUEEN, Piece::Color::WHITE, Position(7, 3), false);
 
 	// Add black king
-	this->blackPieces.push_back(Piece(Piece::Type::KING, Piece::Color::BLACK, Position(0, 4), false));
-	this->board[0][4] = { Piece::Type::KING, Piece::Color::BLACK };
+	this->board[0][4] = Piece(Piece::Type::KING, Piece::Color::BLACK, Position(0, 4), false);
 
 	// Add white king
-	this->whitePieces.push_back(Piece(Piece::Type::KING, Piece::Color::WHITE, Position(7, 4), false));
-	this->board[7][4] = { Piece::Type::KING, Piece::Color::WHITE };
+	this->board[7][4] = Piece(Piece::Type::KING, Piece::Color::WHITE, Position(7, 4), false);
 
 	// Add remaining empty squares
 	for (int i = 2; i <= 5; i++)
 		for (int j = 0; j < 8; j++)
-			this->board[i][j] = { Piece::Type::NONE, Piece::Color::UNCOLORED };
+			this->board[i][j] = Piece(Piece::Type::NONE, Piece::Color::UNCOLORED, Position(i, j), false);
+
+	// Store all occupied positions
+	for (int i = 0; i < 8; i++)
+		for (int j = 0; j < 8; j++)
+		{
+			if (this->board[i][j].getColor() == Piece::Color::WHITE)
+			{
+				this->whiteSquares.push_back(this->board[i][j].getPosition());
+			}
+			else if (this->board[i][j].getColor() == Piece::Color::BLACK)
+			{
+				this->blackSquares.push_back(this->board[i][j].getPosition());
+			}
+		}
+}
+
+Piece Board::getPiece(const Position position)
+{
+	return this->board[position.row()][position.column()];
 }
 
 // Check if a position is on the board given its coordinates
@@ -98,12 +94,12 @@ bool Board::availableSquare(const Piece::Color color, const int row, const int c
 	if (!validPosition(row, column)) // Return false if the position is out of the board
 		return false;
 
-	auto square = this->board[row][column];
+	Piece square = this->board[row][column];
 
-	if (square.type == Piece::Type::NONE) // Return true if the square is empty
+	if (square.getType() == Piece::Type::NONE) // Return true if the square is empty
 		return true;
 
-	if (square.color != color) // Return true if the square is not empty but the piece that is on the square is of the other color
+	if (square.getColor() != color) // Return true if the square is not empty but the piece that is on the square is of the other color
 		return true;
 
 	return false;
@@ -119,11 +115,11 @@ void Board::addAllMovesInDirection(std::vector<Move>& moves, const Piece piece, 
 		if (!validPosition(position)) // Stop if we get out of the board
 			return;
 
-		auto square = this->board[position.row()][position.column()]; // Get the current square
+		Piece square = this->board[position.row()][position.column()]; // Get the current square
 
-		if (square.type != Piece::Type::NONE)
+		if (square.getType() != Piece::Type::NONE)
 		{
-			if (square.color != piece.getColor()) // If the other piece of not the same color then we can capture it
+			if (square.getColor() != piece.getColor()) // If the other piece of not the same color then we can capture it
 				moves.push_back(Move(piece.getPosition(), position));
 
 			return; // If we found another piece we must stop regardless of color
@@ -143,23 +139,23 @@ void Board::addPawnMoves(std::vector<Move>& moves, Piece piece)
 	if (piece.getColor() == Piece::Color::WHITE)
 	{
 		// Go one square up
-		if (validPosition(row - 1, column) && this->board[row - 1][column].type == Piece::Type::NONE)
+		if (validPosition(row - 1, column) && this->board[row - 1][column].getType() == Piece::Type::NONE)
 		{
 			moves.push_back(Move(piece.getPosition(), Position(row - 1, column)));
 
 			// If on first move then go one more square up
-			if (!piece.hasMoved() && validPosition(row - 2, column) && this->board[row - 2][column].type == Piece::Type::NONE)
+			if (!piece.hasMoved() && validPosition(row - 2, column) && this->board[row - 2][column].getType() == Piece::Type::NONE)
 				moves.push_back(Move(piece.getPosition(), Position(row - 2, column)));
 		}
 
 		// Capture black piece up-left
 		if (validPosition(row - 1, column - 1))
-			if (this->board[row - 1][column - 1].type != Piece::Type::NONE && this->board[row - 1][column - 1].color != piece.getColor())
+			if (this->board[row - 1][column - 1].getType() != Piece::Type::NONE && this->board[row - 1][column - 1].getColor() != piece.getColor())
 				moves.push_back(Move(piece.getPosition(), Position(row - 1, column - 1)));
 
 		// Capture black piece up-right
 		if (validPosition(row - 1, column + 1))
-			if (this->board[row - 1][column + 1].type != Piece::Type::NONE && this->board[row - 1][column + 1].color != piece.getColor())
+			if (this->board[row - 1][column + 1].getType() != Piece::Type::NONE && this->board[row - 1][column + 1].getColor() != piece.getColor())
 				moves.push_back(Move(piece.getPosition(), Position(row - 1, column + 1)));
 
 		// TODO Implement en passant
@@ -167,23 +163,23 @@ void Board::addPawnMoves(std::vector<Move>& moves, Piece piece)
 	else
 	{
 		// Go one square down
-		if (validPosition(row + 1, column) && this->board[row + 1][column].type == Piece::Type::NONE)
+		if (validPosition(row + 1, column) && this->board[row + 1][column].getType() == Piece::Type::NONE)
 		{
 			moves.push_back(Move(piece.getPosition(), Position(row + 1, column)));
 
 			// If on first move then go one more square down
-			if (!piece.hasMoved() && validPosition(row + 2, column) && this->board[row + 2][column].type == Piece::Type::NONE)
+			if (!piece.hasMoved() && validPosition(row + 2, column) && this->board[row + 2][column].getType() == Piece::Type::NONE)
 				moves.push_back(Move(piece.getPosition(), Position(row + 2, column)));
 		}
 
 		// Capture white piece down-left
 		if (validPosition(row + 1, column - 1))
-			if (this->board[row + 1][column - 1].type != Piece::Type::NONE && this->board[row + 1][column - 1].color != piece.getColor())
+			if (this->board[row + 1][column - 1].getType() != Piece::Type::NONE && this->board[row + 1][column - 1].getColor() != piece.getColor())
 				moves.push_back(Move(piece.getPosition(), Position(row + 1, column - 1)));
 
 		// Capture white piece down-right
 		if (validPosition(row + 1, column + 1))
-			if (this->board[row + 1][column + 1].type != Piece::Type::NONE && this->board[row + 1][column + 1].color != piece.getColor())
+			if (this->board[row + 1][column + 1].getType() != Piece::Type::NONE && this->board[row + 1][column + 1].getColor() != piece.getColor())
 				moves.push_back(Move(piece.getPosition(), Position(row + 1, column + 1)));
 
 		// TODO Implement en passant
@@ -287,8 +283,9 @@ std::vector<Move> Board::getWhiteMoves()
 {
 	std::vector<Move> moves;
 
-	for (auto piece : this->whitePieces)
+	for (Position position : this->whiteSquares)
 	{
+		Piece piece = this->getPiece(position);
 		switch (piece.getType())
 		{
 		case Piece::Type::PAWN:
@@ -327,8 +324,9 @@ std::vector<Move> Board::getBlackMoves()
 {
 	std::vector<Move> moves;
 
-	for (auto piece : this->blackPieces)
+	for (Position position : this->blackSquares)
 	{
+		Piece piece = this->getPiece(position);
 		switch (piece.getType())
 		{
 		case Piece::Type::PAWN:
@@ -363,45 +361,7 @@ std::vector<Move> Board::getBlackMoves()
 	return moves;
 }
 
-Piece& Board::getPiece(const Position position, const Piece::Color color)
-{
-	if (color == Piece::Color::WHITE)
-	{
-		for (Piece& piece : this->whitePieces)
-			if (piece.getPosition() == position)
-				return piece;
-	}
-	else
-	{
-		for (Piece& piece : this->blackPieces)
-			if (piece.getPosition() == position)
-				return piece;
-	}
-}
-
-void Board::removePiece(const Position position, const Piece::Color color)
-{
-	if (color == Piece::Color::WHITE)
-	{
-		for (std::vector<Piece>::iterator it = this->whitePieces.begin(); it != this->whitePieces.end(); it++)
-			if ((*it).getPosition() == position)
-			{
-				this->whitePieces.erase(it);
-				return;
-			}
-	}
-	else
-	{
-		for (std::vector<Piece>::iterator it = this->blackPieces.begin(); it != this->blackPieces.end(); it++)
-			if ((*it).getPosition() == position)
-			{
-				this->blackPieces.erase(it);
-				return;
-			}
-	}
-}
-
-void Board::makeMove(Move move)
+/*void Board::makeMove(Move move)
 {
 	Position initialPosition = move.getInitialPosition();
 	Position targetPosition = move.getTargetPosition();
@@ -426,8 +386,5 @@ void Board::makeMove(Move move)
 
 	// Empty the initial square
 	initialSquare = { Piece::Type::NONE, Piece::Color::UNCOLORED };
-}
+}*/
 
-void Board::undoMove()
-{
-}
