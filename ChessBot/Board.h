@@ -2,6 +2,7 @@
 #include <vector>
 #include <stack>
 #include <set>
+#include <string>
 #include "Piece.h"
 #include "Move.h"
 
@@ -46,5 +47,6 @@ public:
 
 	void makeMove(Move move);
 	void undoMove();
-};
 
+	std::string toString();
+};

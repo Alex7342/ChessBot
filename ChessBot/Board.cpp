@@ -424,3 +424,40 @@ void Board::undoMove()
 	}
 }
 
+std::string Board::toString()
+{
+	std::string boardString;
+
+	for (int i = 0; i < 8; i++)
+	{
+		for (int j = 0; j < 8; j++)
+			switch (this->board[i][j].getType())
+			{
+			case Piece::Type::PAWN:
+				boardString += "P";
+				break;
+			case Piece::Type::BISHOP:
+				boardString += "B";
+				break;
+			case Piece::Type::KNIGHT:
+				boardString += "K";
+				break;
+			case Piece::Type::ROOK:
+				boardString += "R";
+				break;
+			case Piece::Type::QUEEN:
+				boardString += "Q";
+				break;
+			case Piece::Type::KING:
+				boardString += "X";
+				break;
+			default:
+				boardString += "O";
+				break;
+			}
+
+		boardString += "\n";
+	}
+
+	return boardString;
+}
