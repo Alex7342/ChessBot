@@ -1,20 +1,45 @@
-// ChessBot.cpp : This file contains the 'main' function. Program execution begins and ends there.
-//
-
 #include <iostream>
+#include "Board.h"
+
 
 int main()
 {
-    std::cout << "Hello World!\n";
+    Board board;
+
+    Piece::Color playerToMove = Piece::Color::WHITE;
+    while (true)
+    {
+        std::cout << board.toString() << "\n";
+
+        std::vector<Move> moves = board.getMoves(playerToMove);
+
+        for (auto move : moves)
+        {
+            std::cout << "(" << move.getInitialPosition().row() << ", " << move.getInitialPosition().column() << ") -> " <<
+                "(" << move.getTargetPosition().row() << ", " << move.getTargetPosition().column() << ")\n";
+        }
+        
+        std::cout << "Undo? (y/n)\n";
+        char c; std::cin >> c;
+        if (c == 'y')
+        {
+            board.undoMove();
+        }
+        else
+        {
+            std::cout << "Enter move for " << ((playerToMove == Piece::Color::WHITE) ? "White" : "Black") << ": ";
+
+            int initialRow, initialColumn;
+            int targetRow, targetColumn;
+
+            std::cin >> initialRow >> initialColumn >> targetRow >> targetColumn;
+
+            board.makeMove(Move(Position(initialRow, initialColumn), Position(targetRow, targetColumn)));
+        }
+
+        if (playerToMove == Piece::Color::WHITE)
+            playerToMove = Piece::Color::BLACK;
+        else
+            playerToMove = Piece::Color::WHITE;
+    }
 }
-
-// Run program: Ctrl + F5 or Debug > Start Without Debugging menu
-// Debug program: F5 or Debug > Start Debugging menu
-
-// Tips for Getting Started: 
-//   1. Use the Solution Explorer window to add/manage files
-//   2. Use the Team Explorer window to connect to source control
-//   3. Use the Output window to see build output and other messages
-//   4. Use the Error List window to view errors
-//   5. Go to Project > Add New Item to create new code files, or Project > Add Existing Item to add existing code files to the project
-//   6. In the future, to open this project again, go to File > Open > Project and select the .sln file
