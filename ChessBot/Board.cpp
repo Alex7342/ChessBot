@@ -456,6 +456,66 @@ int Board::evaluate() const
 	return result;
 }
 
+Move Board::getBestMove(const Piece::Color playerToMove)
+{
+	return this->minimax(searchDepth, playerToMove == Piece::Color::WHITE).getMove();
+}
+
+Board::minimaxResult Board::minimax(int depth, bool whiteToMove)
+{
+	if (depth == 0) // TODO Implement game over
+		return Board::minimaxResult(Move(), this->evaluate());
+
+	if (whiteToMove)
+	{
+		// Initialize the result with an empty move and the smallest possible value
+		Board::minimaxResult result(Move(), INT_MIN);
+
+		// Get all the possible moves of the white player
+		std::vector<Move> moves = this->getMoves(Piece::Color::WHITE);
+
+		for (Move move : moves)
+		{
+			this->makeMove(move); // Make the current move
+
+			Board::minimaxResult moveResult = this->minimax(depth - 1, false); // Evaluate the result of the current move and go deeper in the recursion tree
+			if (moveResult.getValue() > result.getValue()) // If the current result is better then store it
+			{
+				result.setMove(move);
+				result.setValue(moveResult.getValue());
+			}
+
+			this->undoMove(); // Undo the current move to bring the table back to its original state
+		}
+
+		return result;
+	}
+	else
+	{
+		// Initialize the result with an empty move and the biggest possible value
+		Board::minimaxResult result(Move(), INT_MAX);
+
+		// Get all the possible moves of the black player
+		std::vector<Move> moves = this->getMoves(Piece::Color::BLACK);
+
+		for (Move move : moves)
+		{
+			this->makeMove(move); // Make the current move
+
+			Board::minimaxResult moveResult = this->minimax(depth - 1, false); // Evaluate the result of the current move and go deeper in recursion tree
+			if (moveResult.getValue() < result.getValue()) // If the current result is better then store it
+			{
+				result.setMove(move);
+				result.setValue(moveResult.getValue());
+			}
+
+			this->undoMove(); // Undo the current move to bring the table back to its original state
+		}
+
+		return result;
+	}
+}
+
 std::string Board::toString()
 {
 	std::string boardString;
@@ -492,4 +552,26 @@ std::string Board::toString()
 	}
 
 	return boardString;
+}
+
+Board::minimaxResult::minimaxResult(const Move move, const int value) : move(move), value(value) {}
+
+Move Board::minimaxResult::getMove() const
+{
+	return this->move;
+}
+
+int Board::minimaxResult::getValue() const
+{
+	return this->value;
+}
+
+void Board::minimaxResult::setMove(const Move move)
+{
+	this->move = move;
+}
+
+void Board::minimaxResult::setValue(const int value)
+{
+	this->value = value;
 }
