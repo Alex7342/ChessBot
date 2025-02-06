@@ -1,5 +1,7 @@
 #include "Position.h"
 
+Position::Position() : _row(0), _column(0) {}
+
 Position::Position(const int row, const int column) : _row(row), _column(column) {}
 
 int Position::row() const

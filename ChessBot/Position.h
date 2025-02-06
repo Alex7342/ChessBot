@@ -6,6 +6,7 @@ private:
 	int _row, _column;
 
 public:
+	Position();
 	Position(const int row, const int column);
 	
 	int row() const;
