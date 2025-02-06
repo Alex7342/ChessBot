@@ -9,7 +9,7 @@
 class Board
 {
 private:
-	static const int searchDepth = 4;
+	static const int searchDepth = 5;
 
 	class minimaxResult
 	{
@@ -56,7 +56,7 @@ private:
 	void addQueenMoves(std::vector<Move>& moves, Piece piece);
 	void addKingMoves(std::vector<Move>& moves, Piece piece);
 
-	minimaxResult minimax(int depth, bool whiteToMove);
+	minimaxResult minimax(int depth, int alpha, int beta, bool whiteToMove);
 
 public:
 	Board();

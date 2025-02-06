@@ -458,10 +458,10 @@ int Board::evaluate() const
 
 Move Board::getBestMove(const Piece::Color playerToMove)
 {
-	return this->minimax(searchDepth, playerToMove == Piece::Color::WHITE).getMove();
+	return this->minimax(searchDepth, INT_MIN, INT_MAX, playerToMove == Piece::Color::WHITE).getMove();
 }
 
-Board::minimaxResult Board::minimax(int depth, bool whiteToMove)
+Board::minimaxResult Board::minimax(int depth, int alpha, int beta, bool whiteToMove)
 {
 	if (depth == 0) // TODO Implement game over
 		return Board::minimaxResult(Move(), this->evaluate());
@@ -478,14 +478,18 @@ Board::minimaxResult Board::minimax(int depth, bool whiteToMove)
 		{
 			this->makeMove(move); // Make the current move
 
-			Board::minimaxResult moveResult = this->minimax(depth - 1, false); // Evaluate the result of the current move and go deeper in the recursion tree
+			Board::minimaxResult moveResult = this->minimax(depth - 1, alpha, beta, false); // Evaluate the result of the current move and go deeper in the recursion tree
 			if (moveResult.getValue() > result.getValue()) // If the current result is better then store it
 			{
 				result.setMove(move);
 				result.setValue(moveResult.getValue());
 			}
+			alpha = std::max(alpha, moveResult.getValue());
 
 			this->undoMove(); // Undo the current move to bring the table back to its original state
+
+			if (beta <= alpha)
+				break;
 		}
 
 		return result;
@@ -502,14 +506,18 @@ Board::minimaxResult Board::minimax(int depth, bool whiteToMove)
 		{
 			this->makeMove(move); // Make the current move
 
-			Board::minimaxResult moveResult = this->minimax(depth - 1, false); // Evaluate the result of the current move and go deeper in recursion tree
+			Board::minimaxResult moveResult = this->minimax(depth - 1, alpha, beta, false); // Evaluate the result of the current move and go deeper in recursion tree
 			if (moveResult.getValue() < result.getValue()) // If the current result is better then store it
 			{
 				result.setMove(move);
 				result.setValue(moveResult.getValue());
 			}
+			beta = std::min(beta, moveResult.getValue());
 
 			this->undoMove(); // Undo the current move to bring the table back to its original state
+
+			if (beta <= alpha)
+				break;
 		}
 
 		return result;
