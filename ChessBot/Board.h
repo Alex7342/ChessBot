@@ -51,8 +51,18 @@ public:
 	std::string toString();
 };
 
+const int pieceValue[7] =
+{
+	0,		// Empty square
+	100,	// Pawn
+	330,	// Bishop
+	320,	// Knight
+	500,	// Rook
+	900,	// Queen
+	20000   // King
+};
 
-const int pieceValue[8][8][8] =
+const int positionValue[8][8][8] =
 {
 	// Empty square value table (index 0)
 	{
