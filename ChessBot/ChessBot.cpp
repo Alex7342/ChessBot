@@ -9,25 +9,16 @@ int main()
     Piece::Color playerToMove = Piece::Color::WHITE;
     while (true)
     {
+        std::cout << "Evaluation: " << board.evaluate() << "\n";
         std::cout << board.toString() << "\n";
 
         std::vector<Move> moves = board.getMoves(playerToMove);
-
         for (auto move : moves)
+            std::cout << move.toString() << "\n";
+
+        if (playerToMove == Piece::Color::WHITE)
         {
-            std::cout << "(" << move.getInitialPosition().row() << ", " << move.getInitialPosition().column() << ") -> " <<
-                "(" << move.getTargetPosition().row() << ", " << move.getTargetPosition().column() << ")\n";
-        }
-        
-        std::cout << "Undo? (y/n)\n";
-        char c; std::cin >> c;
-        if (c == 'y')
-        {
-            board.undoMove();
-        }
-        else
-        {
-            std::cout << "Enter move for " << ((playerToMove == Piece::Color::WHITE) ? "White" : "Black") << ": ";
+            std::cout << "Enter move for white: ";
 
             int initialRow, initialColumn;
             int targetRow, targetColumn;
@@ -35,11 +26,23 @@ int main()
             std::cin >> initialRow >> initialColumn >> targetRow >> targetColumn;
 
             board.makeMove(Move(Position(initialRow, initialColumn), Position(targetRow, targetColumn)));
+
+            playerToMove = Piece::Color::BLACK;
+        }
+        else
+        {
+            Move move = board.getBestMove(playerToMove);
+            board.makeMove(move);
+            std::cout << "Black moved: " << move.toString() << "\n";
+
+            playerToMove = Piece::Color::WHITE;
         }
 
-        if (playerToMove == Piece::Color::WHITE)
-            playerToMove = Piece::Color::BLACK;
-        else
-            playerToMove = Piece::Color::WHITE;
+        std::cout << "\n";
     }
+
+    if (playerToMove == Piece::Color::WHITE)
+        playerToMove = Piece::Color::BLACK;
+    else
+        playerToMove = Piece::Color::WHITE;
 }
