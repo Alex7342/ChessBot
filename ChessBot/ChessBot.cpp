@@ -1,5 +1,6 @@
 #include <iostream>
 #include "Board.h"
+#include <chrono>
 
 
 int main()
@@ -10,7 +11,7 @@ int main()
     while (true)
     {
         std::cout << "Evaluation: " << board.evaluate() << "\n";
-        std::cout << board.toString() << "\n";
+        std::cout << board.toString() << "\n\n";
 
         std::vector<Move> moves = board.getMoves(playerToMove);
         for (auto move : moves)
@@ -31,7 +32,13 @@ int main()
         }
         else
         {
+            auto start = std::chrono::high_resolution_clock::now();
             Move move = board.getBestMove(playerToMove);
+            auto stop = std::chrono::high_resolution_clock::now();
+
+            auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+            std::cout << "Time to get best move: " << duration.count() << "ms\n";
+
             board.makeMove(move);
             std::cout << "Black moved: " << move.toString() << "\n";
 
