@@ -9,6 +9,16 @@
 class Board
 {
 private:
+	static const int searchDepth = 5;
+
+	class minimaxResult
+	{
+	public:
+		Move move;
+		int value;
+		minimaxResult(const Move move, const int value);
+	};
+
 	enum Action
 	{
 		SEPARATOR = 0,
@@ -38,6 +48,8 @@ private:
 	void addQueenMoves(std::vector<Move>& moves, Piece piece);
 	void addKingMoves(std::vector<Move>& moves, Piece piece);
 
+	minimaxResult minimax(int depth, int alpha, int beta, bool whiteToMove);
+
 public:
 	Board();
 
@@ -46,6 +58,7 @@ public:
 	std::vector<Move> getMoves(const Piece::Color playerColor);
 
 	int evaluate() const;
+	Move getBestMove(const Piece::Color playerToMove);
 
 	void makeMove(Move move);
 	void undoMove();

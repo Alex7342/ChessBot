@@ -428,9 +428,12 @@ int Board::evaluate() const
 {
 	int result = 0;
 
-	for (int row = 0; row < 8; row++)
-		for (int column = 0; column < 8; column++)
+	for (int colorIndex = 0; colorIndex < 2; colorIndex++) // 0 for white and 1 for black
+		for (Position position : this->occupiedSquares[colorIndex])
 		{
+			int row = position.row();
+			int column = position.column();
+
 			int pieceType = this->board[row][column].getType();
 			int pieceColor = this->board[row][column].getColor();
 
@@ -454,6 +457,74 @@ int Board::evaluate() const
 		}
 
 	return result;
+}
+
+Move Board::getBestMove(const Piece::Color playerToMove)
+{
+	return this->minimax(searchDepth, INT_MIN, INT_MAX, playerToMove == Piece::Color::WHITE).move;
+}
+
+Board::minimaxResult Board::minimax(int depth, int alpha, int beta, bool whiteToMove)
+{
+	if (depth == 0) // TODO Implement game over
+		return Board::minimaxResult(Move(), this->evaluate());
+
+	if (whiteToMove)
+	{
+		// Initialize the result with an empty move and the smallest possible value
+		Board::minimaxResult result(Move(), INT_MIN);
+
+		// Get all the possible moves of the white player
+		std::vector<Move> moves = this->getMoves(Piece::Color::WHITE);
+
+		for (Move move : moves)
+		{
+			this->makeMove(move); // Make the current move
+
+			Board::minimaxResult child = this->minimax(depth - 1, alpha, beta, false); // Evaluate the result of the current move and go deeper in the recursion tree
+			if (child.value > result.value) // If the current result is better then store it
+			{
+				result.move = move;
+				result.value = child.value;
+			}
+			alpha = std::max(alpha, child.value);
+
+			this->undoMove(); // Undo the current move to bring the table back to its original state
+
+			if (beta <= alpha)
+				break;
+		}
+
+		return result;
+	}
+	else
+	{
+		// Initialize the result with an empty move and the biggest possible value
+		Board::minimaxResult result(Move(), INT_MAX);
+
+		// Get all the possible moves of the black player
+		std::vector<Move> moves = this->getMoves(Piece::Color::BLACK);
+
+		for (Move move : moves)
+		{
+			this->makeMove(move); // Make the current move
+
+			Board::minimaxResult child = this->minimax(depth - 1, alpha, beta, true); // Evaluate the result of the current move and go deeper in recursion tree
+			if (child.value < result.value) // If the current result is better then store it
+			{
+				result.move = move;
+				result.value = child.value;
+			}
+			beta = std::min(beta, child.value);
+
+			this->undoMove(); // Undo the current move to bring the table back to its original state
+
+			if (beta <= alpha)
+				break;
+		}
+
+		return result;
+	}
 }
 
 std::string Board::toString()
@@ -493,3 +564,5 @@ std::string Board::toString()
 
 	return boardString;
 }
+
+Board::minimaxResult::minimaxResult(const Move move, const int value) : move(move), value(value) {}
