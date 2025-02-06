@@ -45,6 +45,8 @@ public:
 
 	std::vector<Move> getMoves(const Piece::Color playerColor);
 
+	int evaluate() const;
+
 	void makeMove(Move move);
 	void undoMove();
 

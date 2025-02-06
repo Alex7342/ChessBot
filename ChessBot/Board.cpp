@@ -84,7 +84,6 @@ bool validPosition(const int row, const int column)
 	return 0 <= row && row < 8 && 0 <= column && column < 8;
 }
 
-
 // Check if a given position is on the board
 bool validPosition(const Position position)
 {
@@ -422,6 +421,39 @@ void Board::undoMove()
 			this->occupiedSquares[index].insert(initialPosition);
 		}
 	}
+}
+
+// Compute the value of the current state of the board (positive values are better for white and negative values are better for black)
+int Board::evaluate() const
+{
+	int result = 0;
+
+	for (int row = 0; row < 8; row++)
+		for (int column = 0; column < 8; column++)
+		{
+			int pieceType = this->board[row][column].getType();
+			int pieceColor = this->board[row][column].getColor();
+
+			int squareValue = pieceValue[pieceType]; // Initialize the value of the square with the value of the piece belonging to that square
+
+			if (pieceColor == Piece::Color::BLACK)
+			{
+				// The position value table must be inverted for black pieces
+				squareValue += positionValue[pieceType][7 - row][column];
+
+				// The value of the square is negative for black pieces
+				squareValue = -squareValue;
+			}
+			else
+			{
+				// Simply add the positional value for a white piece
+				squareValue += positionValue[pieceType][row][column];
+			}
+
+			result += squareValue;
+		}
+
+	return result;
 }
 
 std::string Board::toString()
