@@ -56,7 +56,7 @@ private:
 	void addQueenMoves(std::vector<Move>& moves, Piece piece);
 	void addKingMoves(std::vector<Move>& moves, Piece piece);
 
-	minimaxResult minimax(int depth, int alpha, int beta, bool whiteToMove);
+	minimaxResult minimax(int depth, int& alpha, int& beta, bool whiteToMove);
 
 public:
 	Board();
