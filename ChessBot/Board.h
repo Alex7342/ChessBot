@@ -13,18 +13,10 @@ private:
 
 	class minimaxResult
 	{
-	private:
+	public:
 		Move move;
 		int value;
-
-	public:
 		minimaxResult(const Move move, const int value);
-		
-		Move getMove() const;
-		int getValue() const;
-
-		void setMove(const Move move);
-		void setValue(const int value);
 	};
 
 	enum Action
@@ -56,7 +48,7 @@ private:
 	void addQueenMoves(std::vector<Move>& moves, Piece piece);
 	void addKingMoves(std::vector<Move>& moves, Piece piece);
 
-	minimaxResult minimax(int depth, int& alpha, int& beta, bool whiteToMove);
+	minimaxResult minimax(int depth, int alpha, int beta, bool whiteToMove);
 
 public:
 	Board();
