@@ -281,6 +281,40 @@ void Board::addKingMoves(std::vector<Move>& moves, Piece piece)
 	// TODO Implement castle
 }
 
+void Board::addPiece(const Piece piece, const bool silent)
+{
+	// Only mark changes on the helper stacks if silent is false
+	if (!silent)
+	{
+		this->actionsMade.push(Action::ADD_PIECE); // Mark adding a piece on the board
+		this->addedPieces.push(piece);
+	}
+
+	Position position = piece.getPosition();
+	this->board[position.row()][position.column()] = piece; // Store the piece on the board
+
+	// Mark the piece position as occupied by the piece color
+	int colorIndex = getColorIndex(piece.getColor());
+	this->occupiedSquares[colorIndex].insert(position);
+}
+
+void Board::removePiece(const Piece piece, const bool silent)
+{
+	// Only mark changes on the helper stacks if silent is false
+	if (!silent)
+	{
+		this->actionsMade.push(Action::REMOVE_PIECE); // Mark the removal of a piece
+		this->removedPieces.push(piece); // Store the removed piece on a separate stack
+	}
+
+	Position position = piece.getPosition();
+	this->board[position.row()][position.column()] = Piece(position); // Empty the board square
+
+	// Unmark the previously occupied square
+	int colorIndex = getColorIndex(piece.getColor());
+	this->occupiedSquares[colorIndex].erase(position);
+}
+
 std::vector<Move> Board::getMoves(const Piece::Color playerColor)
 {
 	int index = getColorIndex(playerColor);
@@ -328,40 +362,24 @@ void Board::makeMove(Move move)
 	Position initialPosition = move.getInitialPosition();
 	Position targetPosition = move.getTargetPosition();
 
-	auto pieceToMove = this->board[initialPosition.row()][initialPosition.column()];
-	auto pieceToGetRemoved = this->board[targetPosition.row()][targetPosition.column()];
+	Piece pieceToMove = this->board[initialPosition.row()][initialPosition.column()];
+	Piece pieceToGetCaptured = this->board[targetPosition.row()][targetPosition.column()];
 
 	// If the target square is occupied by another piece, then remove it
-	if (pieceToGetRemoved.getType() != Piece::Type::NONE)
+	if (pieceToGetCaptured.getType() != Piece::Type::NONE)
 	{
-		this->actionsMade.push(Action::REMOVE_PIECE); // Mark the removal of a piece
-		this->removedPieces.push(pieceToGetRemoved); // Store the removed piece on a separate stack
-
-		this->board[targetPosition.row()][targetPosition.column()] = Piece(targetPosition); // Empty the board square
-		
-		// Unmark the previously occupied square
-		int colorIndex = getColorIndex(pieceToGetRemoved.getColor());
-		this->occupiedSquares[colorIndex].erase(targetPosition);
+		this->removePiece(pieceToGetCaptured);
 	}
 
-	// The target square gets the piece from the initial one
-	this->actionsMade.push(Action::MOVE_PIECE); // Mark the movement of a piece
-	pieceToMove.move(targetPosition); // Perform the move on the piece object
-	this->board[targetPosition.row()][targetPosition.column()] = pieceToMove; // Store the move on the board
+	// Remove the piece to move from its square
+	this->removePiece(pieceToMove);
 
-	// Empty the initial square
-	this->board[initialPosition.row()][initialPosition.column()] = Piece(initialPosition); // Empty the square from which the piece moved
-
-	// Modify the position stored in occupiedSquares
-	int colorIndex = getColorIndex(pieceToMove.getColor());
-	this->occupiedSquares[colorIndex].erase(initialPosition);
-	this->occupiedSquares[colorIndex].insert(targetPosition);
+	// Add the piece to move to the target square
+	Piece movedPiece = Piece(pieceToMove.getType(), pieceToMove.getColor(), targetPosition, true); // Get a new piece with correct position and hasMoved
+	this->addPiece(movedPiece);
 
 	// Add a separator to the stack to mark the end of the move
 	this->actionsMade.push(Action::SEPARATOR);
-
-	// Store the move on a stack
-	this->movesMade.push(move);
 }
 
 void Board::undoMove()
@@ -388,37 +406,17 @@ void Board::undoMove()
 			Piece removedPiece = this->removedPieces.top();
 			this->removedPieces.pop();
 
-			// Add the piece back on the board
-			Position position = removedPiece.getPosition();
-			this->board[position.row()][position.column()] = removedPiece;
-
-			// Update occupiedSquares
-			int index = getColorIndex(removedPiece.getColor());
-			this->occupiedSquares[index].insert(position);
+			// Add the piece back with silent = true to avoid modifying the helper stacks
+			this->addPiece(removedPiece, true);
 		}
-		else if (action == Action::MOVE_PIECE)
+		else if (action == Action::ADD_PIECE)
 		{
-			// Get the last applied move
-			Move move = this->movesMade.top();
-			this->movesMade.pop();
+			// Get the last added piece
+			Piece addedPiece = this->addedPieces.top();
+			this->addedPieces.pop();
 
-			Position initialPosition = move.getInitialPosition();
-			Position targetPosition = move.getTargetPosition();
-
-			// Get the piece we are working with
-			Piece piece = this->board[targetPosition.row()][targetPosition.column()];
-
-
-			piece.move(initialPosition); // Perform the inverse move on the piece
-			this->board[initialPosition.row()][initialPosition.column()] = piece; // Store the piece on the board
-
-			// Empty the target square
-			this->board[targetPosition.row()][targetPosition.column()] = Piece(targetPosition);
-
-			// Update occupiedSquares
-			int index = getColorIndex(piece.getColor());
-			this->occupiedSquares[index].erase(targetPosition);
-			this->occupiedSquares[index].insert(initialPosition);
+			// Remove the piece with silent = true to avoid modifying the helper stacks
+			this->removePiece(addedPiece, true);
 		}
 	}
 }
