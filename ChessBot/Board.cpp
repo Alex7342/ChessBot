@@ -51,9 +51,11 @@ Board::Board()
 
 	// Add black king
 	this->board[0][4] = Piece(Piece::Type::KING, Piece::Color::BLACK, Position(0, 4), false);
+	this->blackKingPosition = Position(0, 4);
 
 	// Add white king
 	this->board[7][4] = Piece(Piece::Type::KING, Piece::Color::WHITE, Position(7, 4), false);
+	this->whiteKingPosition = Position(7, 4);
 
 	// Add remaining empty squares
 	for (int i = 2; i <= 5; i++)
@@ -296,6 +298,15 @@ void Board::addPiece(const Piece piece, const bool silent)
 	// Mark the piece position as occupied by the piece color
 	int colorIndex = getColorIndex(piece.getColor());
 	this->occupiedSquares[colorIndex].insert(position);
+
+	// If the added piece is a king then update its stored position
+	if (piece.getType() == Piece::Type::KING)
+	{
+		if (piece.getColor() == Piece::Color::WHITE)
+			this->whiteKingPosition = position;
+		else
+			this->blackKingPosition = position;
+	}
 }
 
 void Board::removePiece(const Piece piece, const bool silent)

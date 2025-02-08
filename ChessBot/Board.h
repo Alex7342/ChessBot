@@ -56,8 +56,6 @@ private:
 	// The position of the black king
 	Position blackKingPosition;
 
-	// TODO Keep track of these positions
-
 	// Returns true if the king of given color is in check, false otherwise
 	bool isInCheck(const Piece::Color color);
 
