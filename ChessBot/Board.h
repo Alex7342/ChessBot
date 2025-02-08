@@ -23,7 +23,7 @@ private:
 	{
 		SEPARATOR = 0,
 		REMOVE_PIECE = 1,
-		MOVE_PIECE = 2,
+		ADD_PIECE = 2,
 	};
 
 	Piece board[8][8];
@@ -34,9 +34,10 @@ private:
 	// Stack that keeps track of all actions made (used for reverting them)
 	std::stack<Action> actionsMade;
 
-	// Helper stacks that keeps track of removed pieces and moves made
+	// Helper stack that keeps track of added pieces
+	std::stack<Piece> addedPieces;
+	// Helper stack that keeps track of removed pieces
 	std::stack<Piece> removedPieces;
-	std::stack<Move> movesMade;
 
 	// Helper functions that need access to the board
 	bool availableSquare(const Piece::Color color, const int row, const int column);
@@ -47,6 +48,8 @@ private:
 	void addRookMoves(std::vector<Move>& moves, Piece piece);
 	void addQueenMoves(std::vector<Move>& moves, Piece piece);
 	void addKingMoves(std::vector<Move>& moves, Piece piece);
+	void addPiece(const Piece piece, const bool silent = false);
+	void removePiece(const Piece piece, const bool silent = false);
 
 	minimaxResult minimax(int depth, int alpha, int beta, bool whiteToMove);
 
