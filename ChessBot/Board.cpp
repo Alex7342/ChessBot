@@ -528,6 +528,37 @@ bool Board::isInCheck(const Piece::Color color)
 	return false;
 }
 
+bool Board::checkmate(const Piece::Color color)
+{
+	// Check if the king is in check or not
+	if (!this->isInCheck(color))
+		return false;
+
+	// Get all possible moves
+	std::vector<Move> moves = this->getMoves(color);
+
+	// Check each move and if the king gets out of check after it then it is not checkmate
+	for (Move move : moves)
+	{
+		// Make the move on the board
+		this->makeMove(move);
+
+		// Check if the king escaped check
+		if (!this->isInCheck(color))
+		{
+			// If so, undo the move and return false
+			this->undoMove();
+			return false;
+		}
+		
+		// If this line is reached then the current move did not get the king out of check and has to be undone
+		this->undoMove();
+	}
+
+	// Return true if no move got the king out of check
+	return true;
+}
+
 std::vector<Move> Board::getMoves(const Piece::Color playerColor)
 {
 	int index = getColorIndex(playerColor);
@@ -677,7 +708,11 @@ Move Board::getBestMove(const Piece::Color playerToMove)
 
 Board::minimaxResult Board::minimax(int depth, int alpha, int beta, bool whiteToMove)
 {
-	if (depth == 0) // TODO Implement game over
+	// Check if the game is over
+	if (this->checkmate(whiteToMove ? Piece::Color::WHITE : Piece::Color::BLACK))
+		return whiteToMove ? Board::minimaxResult(Move(), INT_MIN) : Board::minimaxResult(Move(), INT_MAX);
+
+	if (depth == 0)
 		return Board::minimaxResult(Move(), this->evaluate());
 
 	if (whiteToMove)
