@@ -123,10 +123,10 @@ void Board::addAllMovesInDirection(std::vector<Move>& moves, const Piece piece, 
 
 		if (square.getType() != Piece::Type::NONE)
 		{
-			if (square.getColor() != piece.getColor()) // If the other piece of not the same color then we can capture it
+			if (square.getColor() != piece.getColor() && square.getType() != Piece::Type::KING) // If the other piece is not the same color and is not a king then we can capture it
 				moves.push_back(Move(piece.getPosition(), position));
 
-			return; // If we found another piece we must stop regardless of color
+			return; // If we found another piece we must stop regardless of color or type
 		}
 
 		// If the square is empty then we can move there
