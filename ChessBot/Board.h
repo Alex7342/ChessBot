@@ -51,6 +51,16 @@ private:
 	void addPiece(const Piece piece, const bool silent = false);
 	void removePiece(const Piece piece, const bool silent = false);
 
+	// The position of the white king
+	Position whiteKingPosition;
+	// The position of the black king
+	Position blackKingPosition;
+
+	// Returns true if the king of given color is in check, false otherwise
+	bool isInCheck(const Piece::Color color);
+	//Returns true if the player of the given color is checkmated, false otherwise
+	bool checkmate(const Piece::Color color);
+
 	minimaxResult minimax(int depth, int alpha, int beta, bool whiteToMove);
 
 public:

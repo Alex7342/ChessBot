@@ -51,9 +51,11 @@ Board::Board()
 
 	// Add black king
 	this->board[0][4] = Piece(Piece::Type::KING, Piece::Color::BLACK, Position(0, 4), false);
+	this->blackKingPosition = Position(0, 4);
 
 	// Add white king
 	this->board[7][4] = Piece(Piece::Type::KING, Piece::Color::WHITE, Position(7, 4), false);
+	this->whiteKingPosition = Position(7, 4);
 
 	// Add remaining empty squares
 	for (int i = 2; i <= 5; i++)
@@ -101,7 +103,10 @@ bool Board::availableSquare(const Piece::Color color, const int row, const int c
 	if (square.getType() == Piece::Type::NONE) // Return true if the square is empty
 		return true;
 
-	if (square.getColor() != color) // Return true if the square is not empty but the piece that is on the square is of the other color
+	if (square.getType() == Piece::Type::KING) // Return false if there is a king on the square
+		return false;
+
+	if (square.getColor() != color) // Return true if the square is not empty but the piece that is on the square is of the other color and is not a king
 		return true;
 
 	return false;
@@ -121,10 +126,10 @@ void Board::addAllMovesInDirection(std::vector<Move>& moves, const Piece piece, 
 
 		if (square.getType() != Piece::Type::NONE)
 		{
-			if (square.getColor() != piece.getColor()) // If the other piece of not the same color then we can capture it
+			if (square.getColor() != piece.getColor() && square.getType() != Piece::Type::KING) // If the other piece is not the same color and is not a king then we can capture it
 				moves.push_back(Move(piece.getPosition(), position));
 
-			return; // If we found another piece we must stop regardless of color
+			return; // If we found another piece we must stop regardless of color or type
 		}
 
 		// If the square is empty then we can move there
@@ -152,12 +157,14 @@ void Board::addPawnMoves(std::vector<Move>& moves, Piece piece)
 
 		// Capture black piece up-left
 		if (validPosition(row - 1, column - 1))
-			if (this->board[row - 1][column - 1].getType() != Piece::Type::NONE && this->board[row - 1][column - 1].getColor() != piece.getColor())
-				moves.push_back(Move(piece.getPosition(), Position(row - 1, column - 1)));
+			if (this->board[row - 1][column - 1].getType() != Piece::Type::NONE && this->board[row - 1][column - 1].getType() != Piece::Type::KING)
+				if (this->board[row - 1][column - 1].getColor() != piece.getColor())
+					moves.push_back(Move(piece.getPosition(), Position(row - 1, column - 1)));
 
 		// Capture black piece up-right
 		if (validPosition(row - 1, column + 1))
-			if (this->board[row - 1][column + 1].getType() != Piece::Type::NONE && this->board[row - 1][column + 1].getColor() != piece.getColor())
+			if (this->board[row - 1][column + 1].getType() != Piece::Type::NONE && this->board[row - 1][column + 1].getType() != Piece::Type::KING)
+				if (this->board[row - 1][column + 1].getColor() != piece.getColor())
 				moves.push_back(Move(piece.getPosition(), Position(row - 1, column + 1)));
 
 		// TODO Implement en passant
@@ -176,12 +183,14 @@ void Board::addPawnMoves(std::vector<Move>& moves, Piece piece)
 
 		// Capture white piece down-left
 		if (validPosition(row + 1, column - 1))
-			if (this->board[row + 1][column - 1].getType() != Piece::Type::NONE && this->board[row + 1][column - 1].getColor() != piece.getColor())
+			if (this->board[row + 1][column - 1].getType() != Piece::Type::NONE && this->board[row + 1][column - 1].getType() != Piece::Type::KING)
+				if (this->board[row + 1][column - 1].getColor() != piece.getColor())
 				moves.push_back(Move(piece.getPosition(), Position(row + 1, column - 1)));
 
 		// Capture white piece down-right
 		if (validPosition(row + 1, column + 1))
-			if (this->board[row + 1][column + 1].getType() != Piece::Type::NONE && this->board[row + 1][column + 1].getColor() != piece.getColor())
+			if (this->board[row + 1][column + 1].getType() != Piece::Type::NONE && this->board[row + 1][column + 1].getType() != Piece::Type::KING)
+				if (this->board[row + 1][column + 1].getColor() != piece.getColor())
 				moves.push_back(Move(piece.getPosition(), Position(row + 1, column + 1)));
 
 		// TODO Implement en passant
@@ -296,6 +305,15 @@ void Board::addPiece(const Piece piece, const bool silent)
 	// Mark the piece position as occupied by the piece color
 	int colorIndex = getColorIndex(piece.getColor());
 	this->occupiedSquares[colorIndex].insert(position);
+
+	// If the added piece is a king then update its stored position
+	if (piece.getType() == Piece::Type::KING)
+	{
+		if (piece.getColor() == Piece::Color::WHITE)
+			this->whiteKingPosition = position;
+		else
+			this->blackKingPosition = position;
+	}
 }
 
 void Board::removePiece(const Piece piece, const bool silent)
@@ -313,6 +331,239 @@ void Board::removePiece(const Piece piece, const bool silent)
 	// Unmark the previously occupied square
 	int colorIndex = getColorIndex(piece.getColor());
 	this->occupiedSquares[colorIndex].erase(position);
+}
+
+bool Board::isInCheck(const Piece::Color color)
+{
+	Position kingPosition;
+
+	if (color == Piece::Color::WHITE)
+	{
+		// Get the position of the white king
+		kingPosition = this->whiteKingPosition;
+
+		// Check for a pawn in the up-left direction
+		if (validPosition(kingPosition.UpLeft()) && this->getPiece(kingPosition.UpLeft()).getType() == Piece::Type::PAWN && this->getPiece(kingPosition.UpLeft()).getColor() != color)
+			return true;
+		
+		// Check for a pawn in the up-right direction
+		if (validPosition(kingPosition.UpRight()) && this->getPiece(kingPosition.UpRight()).getType() == Piece::Type::PAWN && this->getPiece(kingPosition.UpRight()).getColor() != color)
+			return true;
+	}
+	else
+	{
+		// Get the position of the black king
+		kingPosition = this->blackKingPosition;
+
+		// Check for a pawn in the down-left direction
+		if (validPosition(kingPosition.DownLeft()) && this->getPiece(kingPosition.DownLeft()).getType() == Piece::Type::PAWN && this->getPiece(kingPosition.DownLeft()).getColor() != color)
+			return true;
+
+		// Check for a pawn in the down-right direction
+		if (validPosition(kingPosition.DownRight()) && this->getPiece(kingPosition.DownRight()).getType() == Piece::Type::PAWN && this->getPiece(kingPosition.DownRight()).getColor() != color)
+			return true;
+	}
+
+	Position positionToCheck;
+
+	// Check in the up direction
+	positionToCheck = kingPosition.Up();
+	while (validPosition(positionToCheck))
+	{
+		Piece::Type pieceType = this->getPiece(positionToCheck).getType();
+		Piece::Color pieceColor = this->getPiece(positionToCheck).getColor();
+		
+		// If the first piece we encounter is of the same color then the king can't be checked from this direction
+		if (pieceColor == color)
+			break;
+
+		// If the first piece we encounter is a rook or queen of the other color then the king is in check
+		if (pieceColor != color && (pieceType == Piece::Type::ROOK || pieceType == Piece::Type::QUEEN))
+			return true;
+
+		positionToCheck = positionToCheck.Up();
+	}
+
+	// Check in the down direction
+	positionToCheck = kingPosition.Down();
+	while (validPosition(positionToCheck))
+	{
+		Piece::Type pieceType = this->getPiece(positionToCheck).getType();
+		Piece::Color pieceColor = this->getPiece(positionToCheck).getColor();
+
+		// If the first piece we encounter is of the same color then the king can't be checked from this direction
+		if (pieceColor == color)
+			break;
+
+		// If the first piece we encounter is a rook or queen of the other color then the king is in check
+		if (pieceColor != color && (pieceType == Piece::Type::ROOK || pieceType == Piece::Type::QUEEN))
+			return true;
+
+		positionToCheck = positionToCheck.Down();
+	}
+
+	// Check in the left direction
+	positionToCheck = kingPosition.Left();
+	while (validPosition(positionToCheck))
+	{
+		Piece::Type pieceType = this->getPiece(positionToCheck).getType();
+		Piece::Color pieceColor = this->getPiece(positionToCheck).getColor();
+
+		// If the first piece we encounter is of the same color then the king can't be checked from this direction
+		if (pieceColor == color)
+			break;
+
+		// If the first piece we encounter is a rook or queen of the other color then the king is in check
+		if (pieceColor != color && (pieceType == Piece::Type::ROOK || pieceType == Piece::Type::QUEEN))
+			return true;
+
+		positionToCheck = positionToCheck.Left();
+	}
+
+	// Check in the right direction
+	positionToCheck = kingPosition.Right();
+	while (validPosition(positionToCheck))
+	{
+		Piece::Type pieceType = this->getPiece(positionToCheck).getType();
+		Piece::Color pieceColor = this->getPiece(positionToCheck).getColor();
+
+		// If the first piece we encounter is of the same color then the king can't be checked from this direction
+		if (pieceColor == color)
+			break;
+
+		// If the first piece we encounter is a rook or queen of the other color then the king is in check
+		if (pieceColor != color && (pieceType == Piece::Type::ROOK || pieceType == Piece::Type::QUEEN))
+			return true;
+
+		positionToCheck = positionToCheck.Right();
+	}
+
+	// Check in the up-left direction
+	positionToCheck = kingPosition.UpLeft();
+	while (validPosition(positionToCheck))
+	{
+		Piece::Type pieceType = this->getPiece(positionToCheck).getType();
+		Piece::Color pieceColor = this->getPiece(positionToCheck).getColor();
+
+		// If the first piece we encounter is of the same color then the king can't be checked from this direction
+		if (pieceColor == color)
+			break;
+
+		// If the first piece we encounter is a rook or queen of the other color then the king is in check
+		if (pieceColor != color && (pieceType == Piece::Type::BISHOP || pieceType == Piece::Type::QUEEN))
+			return true;
+
+		positionToCheck = positionToCheck.UpLeft();
+	}
+
+	// Check in the up-right direction
+	positionToCheck = kingPosition.UpRight();
+	while (validPosition(positionToCheck))
+	{
+		Piece::Type pieceType = this->getPiece(positionToCheck).getType();
+		Piece::Color pieceColor = this->getPiece(positionToCheck).getColor();
+
+		// If the first piece we encounter is of the same color then the king can't be checked from this direction
+		if (pieceColor == color)
+			break;
+
+		// If the first piece we encounter is a rook or queen of the other color then the king is in check
+		if (pieceColor != color && (pieceType == Piece::Type::BISHOP || pieceType == Piece::Type::QUEEN))
+			return true;
+
+		positionToCheck = positionToCheck.UpRight();
+	}
+
+	// Check in the down-left direction
+	positionToCheck = kingPosition.DownLeft();
+	while (validPosition(positionToCheck))
+	{
+		Piece::Type pieceType = this->getPiece(positionToCheck).getType();
+		Piece::Color pieceColor = this->getPiece(positionToCheck).getColor();
+
+		// If the first piece we encounter is of the same color then the king can't be checked from this direction
+		if (pieceColor == color)
+			break;
+
+		// If the first piece we encounter is a rook or queen of the other color then the king is in check
+		if (pieceColor != color && (pieceType == Piece::Type::BISHOP || pieceType == Piece::Type::QUEEN))
+			return true;
+
+		positionToCheck = positionToCheck.DownLeft();
+	}
+
+	// Check in the down-right direction
+	positionToCheck = kingPosition.DownRight();
+	while (validPosition(positionToCheck))
+	{
+		Piece::Type pieceType = this->getPiece(positionToCheck).getType();
+		Piece::Color pieceColor = this->getPiece(positionToCheck).getColor();
+
+		// If the first piece we encounter is of the same color then the king can't be checked from this direction
+		if (pieceColor == color)
+			break;
+
+		// If the first piece we encounter is a rook or queen of the other color then the king is in check
+		if (pieceColor != color && (pieceType == Piece::Type::BISHOP || pieceType == Piece::Type::QUEEN))
+			return true;
+
+		positionToCheck = positionToCheck.DownRight();
+	}
+
+	// Check for knights
+	int row = kingPosition.row();
+	int column = kingPosition.column();
+
+	// All possible positions from which a knigt can check the king
+	Piece pieces[8] =
+	{
+		validPosition(row - 1, column - 2) ? this->board[row - 1][column - 2] : Piece(),
+		validPosition(row - 2, column - 1) ? this->board[row - 2][column - 1] : Piece(),
+		validPosition(row - 2, column + 1) ? this->board[row - 2][column + 1] : Piece(),
+		validPosition(row - 1, column + 2) ? this->board[row - 1][column + 2] : Piece(),
+		validPosition(row + 1, column - 2) ? this->board[row + 1][column - 2] : Piece(),
+		validPosition(row + 2, column - 1) ? this->board[row + 2][column - 1] : Piece(),
+		validPosition(row + 2, column + 1) ? this->board[row + 2][column + 1] : Piece(),
+		validPosition(row + 1, column + 2) ? this->board[row + 1][column + 2] : Piece()
+	};
+	
+	// Check if there is a knight of the other color on each of the possible positions
+	for (int i = 0; i < 8; i++)
+		if (pieces[i].getType() == Piece::KNIGHT && pieces[i].getColor() != color)
+			return true;
+
+	return false;
+}
+
+bool Board::checkmate(const Piece::Color color)
+{
+	// Check if the king is in check or not
+	if (!this->isInCheck(color))
+		return false;
+
+	// Get all possible moves
+	std::vector<Move> moves = this->getMoves(color);
+
+	// Check each move and if the king gets out of check after it then it is not checkmate
+	for (Move move : moves)
+	{
+		// Make the move on the board
+		this->makeMove(move);
+
+		// Check if the king escaped check
+		if (!this->isInCheck(color))
+		{
+			// If so, undo the move and return false
+			this->undoMove();
+			return false;
+		}
+		
+		// If this line is reached then the current move did not get the king out of check and has to be undone
+		this->undoMove();
+	}
+
+	// Return true if no move got the king out of check
+	return true;
 }
 
 std::vector<Move> Board::getMoves(const Piece::Color playerColor)
@@ -464,7 +715,11 @@ Move Board::getBestMove(const Piece::Color playerToMove)
 
 Board::minimaxResult Board::minimax(int depth, int alpha, int beta, bool whiteToMove)
 {
-	if (depth == 0) // TODO Implement game over
+	// Check if the game is over
+	if (this->checkmate(whiteToMove ? Piece::Color::WHITE : Piece::Color::BLACK))
+		return whiteToMove ? Board::minimaxResult(Move(), INT_MIN) : Board::minimaxResult(Move(), INT_MAX);
+
+	if (depth == 0)
 		return Board::minimaxResult(Move(), this->evaluate());
 
 	if (whiteToMove)
@@ -479,13 +734,16 @@ Board::minimaxResult Board::minimax(int depth, int alpha, int beta, bool whiteTo
 		{
 			this->makeMove(move); // Make the current move
 
-			Board::minimaxResult child = this->minimax(depth - 1, alpha, beta, false); // Evaluate the result of the current move and go deeper in the recursion tree
-			if (child.value > result.value) // If the current result is better then store it
+			if (!this->isInCheck(Piece::Color::WHITE)) // Check if the move is valid
 			{
-				result.move = move;
-				result.value = child.value;
+				Board::minimaxResult child = this->minimax(depth - 1, alpha, beta, false); // Evaluate the result of the current move and go deeper in the recursion tree
+				if (child.value > result.value) // If the current result is better then store it
+				{
+					result.move = move;
+					result.value = child.value;
+				}
+				alpha = std::max(alpha, child.value);
 			}
-			alpha = std::max(alpha, child.value);
 
 			this->undoMove(); // Undo the current move to bring the table back to its original state
 
@@ -507,13 +765,16 @@ Board::minimaxResult Board::minimax(int depth, int alpha, int beta, bool whiteTo
 		{
 			this->makeMove(move); // Make the current move
 
-			Board::minimaxResult child = this->minimax(depth - 1, alpha, beta, true); // Evaluate the result of the current move and go deeper in recursion tree
-			if (child.value < result.value) // If the current result is better then store it
+			if (!this->isInCheck(Piece::Color::BLACK)) // Check if the move is valid
 			{
-				result.move = move;
-				result.value = child.value;
+				Board::minimaxResult child = this->minimax(depth - 1, alpha, beta, true); // Evaluate the result of the current move and go deeper in recursion tree
+				if (child.value < result.value) // If the current result is better then store it
+				{
+					result.move = move;
+					result.value = child.value;
+				}
+				beta = std::min(beta, child.value);
 			}
-			beta = std::min(beta, child.value);
 
 			this->undoMove(); // Undo the current move to bring the table back to its original state
 
