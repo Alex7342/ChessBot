@@ -154,12 +154,14 @@ void Board::addPawnMoves(std::vector<Move>& moves, Piece piece)
 
 		// Capture black piece up-left
 		if (validPosition(row - 1, column - 1))
-			if (this->board[row - 1][column - 1].getType() != Piece::Type::NONE && this->board[row - 1][column - 1].getColor() != piece.getColor())
-				moves.push_back(Move(piece.getPosition(), Position(row - 1, column - 1)));
+			if (this->board[row - 1][column - 1].getType() != Piece::Type::NONE && this->board[row - 1][column - 1].getType() != Piece::Type::KING)
+				if (this->board[row - 1][column - 1].getColor() != piece.getColor())
+					moves.push_back(Move(piece.getPosition(), Position(row - 1, column - 1)));
 
 		// Capture black piece up-right
 		if (validPosition(row - 1, column + 1))
-			if (this->board[row - 1][column + 1].getType() != Piece::Type::NONE && this->board[row - 1][column + 1].getColor() != piece.getColor())
+			if (this->board[row - 1][column + 1].getType() != Piece::Type::NONE && this->board[row - 1][column + 1].getType() != Piece::Type::KING)
+				if (this->board[row - 1][column + 1].getColor() != piece.getColor())
 				moves.push_back(Move(piece.getPosition(), Position(row - 1, column + 1)));
 
 		// TODO Implement en passant
@@ -178,12 +180,14 @@ void Board::addPawnMoves(std::vector<Move>& moves, Piece piece)
 
 		// Capture white piece down-left
 		if (validPosition(row + 1, column - 1))
-			if (this->board[row + 1][column - 1].getType() != Piece::Type::NONE && this->board[row + 1][column - 1].getColor() != piece.getColor())
+			if (this->board[row + 1][column - 1].getType() != Piece::Type::NONE && this->board[row + 1][column - 1].getType() != Piece::Type::KING)
+				if (this->board[row + 1][column - 1].getColor() != piece.getColor())
 				moves.push_back(Move(piece.getPosition(), Position(row + 1, column - 1)));
 
 		// Capture white piece down-right
 		if (validPosition(row + 1, column + 1))
-			if (this->board[row + 1][column + 1].getType() != Piece::Type::NONE && this->board[row + 1][column + 1].getColor() != piece.getColor())
+			if (this->board[row + 1][column + 1].getType() != Piece::Type::NONE && this->board[row + 1][column + 1].getType() != Piece::Type::KING)
+				if (this->board[row + 1][column + 1].getColor() != piece.getColor())
 				moves.push_back(Move(piece.getPosition(), Position(row + 1, column + 1)));
 
 		// TODO Implement en passant
