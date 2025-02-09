@@ -734,13 +734,16 @@ Board::minimaxResult Board::minimax(int depth, int alpha, int beta, bool whiteTo
 		{
 			this->makeMove(move); // Make the current move
 
-			Board::minimaxResult child = this->minimax(depth - 1, alpha, beta, false); // Evaluate the result of the current move and go deeper in the recursion tree
-			if (child.value > result.value) // If the current result is better then store it
+			if (!this->isInCheck(Piece::Color::WHITE)) // Check if the move is valid
 			{
-				result.move = move;
-				result.value = child.value;
+				Board::minimaxResult child = this->minimax(depth - 1, alpha, beta, false); // Evaluate the result of the current move and go deeper in the recursion tree
+				if (child.value > result.value) // If the current result is better then store it
+				{
+					result.move = move;
+					result.value = child.value;
+				}
+				alpha = std::max(alpha, child.value);
 			}
-			alpha = std::max(alpha, child.value);
 
 			this->undoMove(); // Undo the current move to bring the table back to its original state
 
@@ -762,13 +765,16 @@ Board::minimaxResult Board::minimax(int depth, int alpha, int beta, bool whiteTo
 		{
 			this->makeMove(move); // Make the current move
 
-			Board::minimaxResult child = this->minimax(depth - 1, alpha, beta, true); // Evaluate the result of the current move and go deeper in recursion tree
-			if (child.value < result.value) // If the current result is better then store it
+			if (!this->isInCheck(Piece::Color::BLACK)) // Check if the move is valid
 			{
-				result.move = move;
-				result.value = child.value;
+				Board::minimaxResult child = this->minimax(depth - 1, alpha, beta, true); // Evaluate the result of the current move and go deeper in recursion tree
+				if (child.value < result.value) // If the current result is better then store it
+				{
+					result.move = move;
+					result.value = child.value;
+				}
+				beta = std::min(beta, child.value);
 			}
-			beta = std::min(beta, child.value);
 
 			this->undoMove(); // Undo the current move to bring the table back to its original state
 
