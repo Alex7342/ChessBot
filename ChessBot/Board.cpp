@@ -103,7 +103,10 @@ bool Board::availableSquare(const Piece::Color color, const int row, const int c
 	if (square.getType() == Piece::Type::NONE) // Return true if the square is empty
 		return true;
 
-	if (square.getColor() != color) // Return true if the square is not empty but the piece that is on the square is of the other color
+	if (square.getType() == Piece::Type::KING) // Return false if there is a king on the square
+		return false;
+
+	if (square.getColor() != color) // Return true if the square is not empty but the piece that is on the square is of the other color and is not a king
 		return true;
 
 	return false;
