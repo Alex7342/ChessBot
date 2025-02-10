@@ -836,7 +836,7 @@ Board::minimaxResult Board::minimax(int depth, int alpha, int beta, bool whiteTo
 {
 	// Check if the game is over
 	if (this->checkmate(whiteToMove ? Piece::Color::WHITE : Piece::Color::BLACK))
-		return whiteToMove ? Board::minimaxResult(Move(), INT_MIN) : Board::minimaxResult(Move(), INT_MAX);
+		return whiteToMove ? Board::minimaxResult(Move(), INT_MIN + 1) : Board::minimaxResult(Move(), INT_MAX - 1);
 
 	if (depth == 0)
 		return Board::minimaxResult(Move(), this->evaluate());
