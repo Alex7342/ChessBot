@@ -285,7 +285,56 @@ void Board::addKingMoves(std::vector<Move>& moves, Piece piece)
 				if (this->availableSquare(piece.getColor(), i, j))
 					moves.push_back(Move(piece.getPosition(), Position(i, j)));
 
-	// TODO Implement castle
+	// Check if the king has moved
+	if (!piece.hasMoved())
+	{
+		// Get the color opposing the color of the king
+		auto otherColor = piece.getColor() == Piece::Color::WHITE ? Piece::Color::BLACK : Piece::Color::WHITE;
+
+		// Check if the queenside rook has moved
+		if (!this->getPiece(Position(row, 0)).hasMoved())
+		{
+			bool canCastle = true;
+
+			// Check if the square between the king and the rook are empty
+			for (int columnToCheck = 1; columnToCheck < column && canCastle; columnToCheck++)
+				if (this->board[row][columnToCheck].getType() != Piece::Type::NONE)
+					canCastle = false;
+
+			// Check if the squares the king would travel are attacked by the other color
+			for (int columnToCheck = column - 2; columnToCheck <= column && canCastle; columnToCheck++)
+				if (this->isAttackedBy(Position(row, columnToCheck), otherColor))
+					canCastle = false;
+					
+					
+			if (canCastle)
+			{
+				moves.push_back(Move(piece.getPosition(), Position(row, column - 2)));
+			}
+		}
+
+		// Check if the kingside rook has moved
+		if (!this->getPiece(Position(row, 7)).hasMoved())
+		{
+			bool canCastle = true;
+
+			// Check if the square between the king and the rook are empty
+			for (int columnToCheck = column + 1; columnToCheck < 7 && canCastle; columnToCheck++)
+				if (this->board[row][columnToCheck].getType() != Piece::Type::NONE)
+					canCastle = false;
+
+			// Check if the squares the king would travel are attacked by the other color
+			for (int columnToCheck = column; columnToCheck <= column + 2 && canCastle; columnToCheck++)
+				if (this->isAttackedBy(Position(row, columnToCheck), otherColor))
+					canCastle = false;
+					
+
+			if (canCastle)
+			{
+				moves.push_back(Move(piece.getPosition(), Position(row, column + 2)));
+			}
+		}
+	}
 }
 
 void Board::addPiece(const Piece piece, const bool silent)
@@ -666,7 +715,7 @@ void Board::makeMove(Move move)
 	Position targetPosition = move.getTargetPosition();
 
 	// Check if the move is a castle
-	if (initialPosition == this->whiteKingPosition)
+	if (initialPosition == this->whiteKingPosition && !this->getPiece(initialPosition).hasMoved())
 	{
 		if (targetPosition == Position(7, 6) || targetPosition == Position(7, 2))
 		{
@@ -674,7 +723,7 @@ void Board::makeMove(Move move)
 			return;
 		}
 	}
-	else if (initialPosition == this->blackKingPosition)
+	else if (initialPosition == this->blackKingPosition && !this->getPiece(initialPosition).hasMoved())
 	{
 		if (targetPosition == Position(0, 6) || targetPosition == Position(0, 2))
 		{
