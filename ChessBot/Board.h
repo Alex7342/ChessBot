@@ -75,7 +75,11 @@ public:
 	int evaluate() const;
 	Move getBestMove(const Piece::Color playerToMove);
 
+	// Special case of makeMove for handling castles
+	void castle(Move move);
+	// Makes the given move on the board
 	void makeMove(Move move);
+	// Undoes the last move that was made
 	void undoMove();
 
 	std::string toString();

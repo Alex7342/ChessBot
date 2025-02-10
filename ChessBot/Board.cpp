@@ -275,8 +275,6 @@ void Board::addQueenMoves(std::vector<Move>& moves, Piece piece)
 // Add all possible moves of a given king to a container reference given as a parameter
 void Board::addKingMoves(std::vector<Move>& moves, Piece piece)
 {
-	// TODO Check if each move would put the king in check (NOT ONLY THE MOVES OF THE KING)
-	
 	int row = piece.getPosition().row();
 	int column = piece.getPosition().column();
 
@@ -607,10 +605,83 @@ std::vector<Move> Board::getMoves(const Piece::Color playerColor)
 	return moves;
 }
 
+void Board::castle(Move move)
+{
+	Position kingInitialPosition = move.getInitialPosition();
+	Position kingTargetPosition = move.getTargetPosition();
+	Piece king = this->getPiece(kingInitialPosition);
+	
+	Position rookTargetPosition;
+	Piece rook;
+
+	// Get rook information
+	if (king.getColor() == Piece::Color::WHITE) // White king castles
+	{
+		if (kingTargetPosition == Position(7, 6)) // Kingside
+		{
+			rookTargetPosition = Position(7, 5);
+			rook = this->getPiece(Position(7, 7));
+		}
+		else // Queenside
+		{
+			rookTargetPosition = Position(7, 3);
+			rook = this->getPiece(Position(7, 0));
+		}
+	}
+	else // Black king castles
+	{
+		if (kingTargetPosition == Position(0, 6)) // Kingside
+		{
+			rookTargetPosition = Position(0, 5);
+			rook = this->getPiece(Position(0, 7));
+		}
+		else // Queenside
+		{
+			rookTargetPosition = Position(0, 3);
+			rook = this->getPiece(Position(0, 0));
+		}
+	}
+
+	// Remove the king from his position
+	this->removePiece(king);
+
+	// Create a new king piece at the target position with hasMoved = true
+	Piece movedKing = Piece(king.getType(), king.getColor(), kingTargetPosition, true);
+	this->addPiece(movedKing);
+
+	// Remove the rook from his position
+	this->removePiece(rook);
+
+	// Create a new rook piece at the target position with hasMoved = true
+	Piece movedRook = Piece(rook.getType(), rook.getColor(), rookTargetPosition, true);
+	this->addPiece(movedRook);
+
+	// Add a separator at the end of the move
+	this->actionsMade.push(Action::SEPARATOR);
+}
+
 void Board::makeMove(Move move)
 {
 	Position initialPosition = move.getInitialPosition();
 	Position targetPosition = move.getTargetPosition();
+
+	// Check if the move is a castle
+	if (initialPosition == this->whiteKingPosition)
+	{
+		if (targetPosition == Position(7, 6) || targetPosition == Position(7, 2))
+		{
+			this->castle(move);
+			return;
+		}
+	}
+	else if (initialPosition == this->blackKingPosition)
+	{
+		if (targetPosition == Position(0, 6) || targetPosition == Position(0, 2))
+		{
+			this->castle(move);
+			return;
+		}
+	}
 
 	Piece pieceToMove = this->board[initialPosition.row()][initialPosition.column()];
 	Piece pieceToGetCaptured = this->board[targetPosition.row()][targetPosition.column()];
