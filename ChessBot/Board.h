@@ -56,6 +56,8 @@ private:
 	// The position of the black king
 	Position blackKingPosition;
 
+	// Returns true if the given position is attacked by a piece of the other color, false otherwise
+	bool isAttackedBy(Position position, const Piece::Color attackingColor);
 	// Returns true if the king of given color is in check, false otherwise
 	bool isInCheck(const Piece::Color color);
 	//Returns true if the player of the given color is checkmated, false otherwise

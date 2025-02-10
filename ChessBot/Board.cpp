@@ -333,188 +333,180 @@ void Board::removePiece(const Piece piece, const bool silent)
 	this->occupiedSquares[colorIndex].erase(position);
 }
 
-bool Board::isInCheck(const Piece::Color color)
+bool Board::isAttackedBy(Position position, const Piece::Color attackingColor)
 {
-	Position kingPosition;
-
-	if (color == Piece::Color::WHITE)
+	if (attackingColor == Piece::Color::BLACK)
 	{
-		// Get the position of the white king
-		kingPosition = this->whiteKingPosition;
-
 		// Check for a pawn in the up-left direction
-		if (validPosition(kingPosition.UpLeft()) && this->getPiece(kingPosition.UpLeft()).getType() == Piece::Type::PAWN && this->getPiece(kingPosition.UpLeft()).getColor() != color)
+		if (validPosition(position.UpLeft()) && this->getPiece(position.UpLeft()).getType() == Piece::Type::PAWN && this->getPiece(position.UpLeft()).getColor() == attackingColor)
 			return true;
-		
+
 		// Check for a pawn in the up-right direction
-		if (validPosition(kingPosition.UpRight()) && this->getPiece(kingPosition.UpRight()).getType() == Piece::Type::PAWN && this->getPiece(kingPosition.UpRight()).getColor() != color)
+		if (validPosition(position.UpRight()) && this->getPiece(position.UpRight()).getType() == Piece::Type::PAWN && this->getPiece(position.UpRight()).getColor() == attackingColor)
 			return true;
 	}
 	else
 	{
-		// Get the position of the black king
-		kingPosition = this->blackKingPosition;
-
 		// Check for a pawn in the down-left direction
-		if (validPosition(kingPosition.DownLeft()) && this->getPiece(kingPosition.DownLeft()).getType() == Piece::Type::PAWN && this->getPiece(kingPosition.DownLeft()).getColor() != color)
+		if (validPosition(position.DownLeft()) && this->getPiece(position.DownLeft()).getType() == Piece::Type::PAWN && this->getPiece(position.DownLeft()).getColor() == attackingColor)
 			return true;
 
 		// Check for a pawn in the down-right direction
-		if (validPosition(kingPosition.DownRight()) && this->getPiece(kingPosition.DownRight()).getType() == Piece::Type::PAWN && this->getPiece(kingPosition.DownRight()).getColor() != color)
+		if (validPosition(position.DownRight()) && this->getPiece(position.DownRight()).getType() == Piece::Type::PAWN && this->getPiece(position.DownRight()).getColor() == attackingColor)
 			return true;
 	}
 
 	Position positionToCheck;
 
 	// Check in the up direction
-	positionToCheck = kingPosition.Up();
+	positionToCheck = position.Up();
 	while (validPosition(positionToCheck))
 	{
 		Piece::Type pieceType = this->getPiece(positionToCheck).getType();
 		Piece::Color pieceColor = this->getPiece(positionToCheck).getColor();
-		
-		// If the first piece we encounter is of the same color then the king can't be checked from this direction
-		if (pieceColor == color)
+
+		// If the first piece we encounter is not of the attacking color then the piece can't be attacked from this direction
+		if (pieceType != Piece::Type::NONE && pieceColor != attackingColor)
 			break;
 
-		// If the first piece we encounter is a rook or queen of the other color then the king is in check
-		if (pieceColor != color && (pieceType == Piece::Type::ROOK || pieceType == Piece::Type::QUEEN))
+		// If the first piece we encounter is a rook or queen of attacking color then the piece is attacked
+		if (pieceColor == attackingColor && (pieceType == Piece::Type::ROOK || pieceType == Piece::Type::QUEEN))
 			return true;
 
 		positionToCheck = positionToCheck.Up();
 	}
 
 	// Check in the down direction
-	positionToCheck = kingPosition.Down();
+	positionToCheck = position.Down();
 	while (validPosition(positionToCheck))
 	{
 		Piece::Type pieceType = this->getPiece(positionToCheck).getType();
 		Piece::Color pieceColor = this->getPiece(positionToCheck).getColor();
 
-		// If the first piece we encounter is of the same color then the king can't be checked from this direction
-		if (pieceColor == color)
+		// If the first piece we encounter is not of the attacking color then the piece can't be attacked from this direction
+		if (pieceType != Piece::Type::NONE && pieceColor != attackingColor)
 			break;
 
-		// If the first piece we encounter is a rook or queen of the other color then the king is in check
-		if (pieceColor != color && (pieceType == Piece::Type::ROOK || pieceType == Piece::Type::QUEEN))
+		// If the first piece we encounter is a rook or queen of attacking color then the piece is attacked
+		if (pieceColor == attackingColor && (pieceType == Piece::Type::ROOK || pieceType == Piece::Type::QUEEN))
 			return true;
 
 		positionToCheck = positionToCheck.Down();
 	}
 
 	// Check in the left direction
-	positionToCheck = kingPosition.Left();
+	positionToCheck = position.Left();
 	while (validPosition(positionToCheck))
 	{
 		Piece::Type pieceType = this->getPiece(positionToCheck).getType();
 		Piece::Color pieceColor = this->getPiece(positionToCheck).getColor();
 
-		// If the first piece we encounter is of the same color then the king can't be checked from this direction
-		if (pieceColor == color)
+		// If the first piece we encounter is not of the attacking color then the piece can't be attacked from this direction
+		if (pieceType != Piece::Type::NONE && pieceColor != attackingColor)
 			break;
 
-		// If the first piece we encounter is a rook or queen of the other color then the king is in check
-		if (pieceColor != color && (pieceType == Piece::Type::ROOK || pieceType == Piece::Type::QUEEN))
+		// If the first piece we encounter is a rook or queen of attacking color then the piece is attacked
+		if (pieceColor == attackingColor && (pieceType == Piece::Type::ROOK || pieceType == Piece::Type::QUEEN))
 			return true;
 
 		positionToCheck = positionToCheck.Left();
 	}
 
 	// Check in the right direction
-	positionToCheck = kingPosition.Right();
+	positionToCheck = position.Right();
 	while (validPosition(positionToCheck))
 	{
 		Piece::Type pieceType = this->getPiece(positionToCheck).getType();
 		Piece::Color pieceColor = this->getPiece(positionToCheck).getColor();
 
-		// If the first piece we encounter is of the same color then the king can't be checked from this direction
-		if (pieceColor == color)
+		// If the first piece we encounter is not of the attacking color then the piece can't be attacked from this direction
+		if (pieceType != Piece::Type::NONE && pieceColor != attackingColor)
 			break;
 
-		// If the first piece we encounter is a rook or queen of the other color then the king is in check
-		if (pieceColor != color && (pieceType == Piece::Type::ROOK || pieceType == Piece::Type::QUEEN))
+		// If the first piece we encounter is a rook or queen of attacking color then the piece is attacked
+		if (pieceColor == attackingColor && (pieceType == Piece::Type::ROOK || pieceType == Piece::Type::QUEEN))
 			return true;
 
 		positionToCheck = positionToCheck.Right();
 	}
 
 	// Check in the up-left direction
-	positionToCheck = kingPosition.UpLeft();
+	positionToCheck = position.UpLeft();
 	while (validPosition(positionToCheck))
 	{
 		Piece::Type pieceType = this->getPiece(positionToCheck).getType();
 		Piece::Color pieceColor = this->getPiece(positionToCheck).getColor();
 
-		// If the first piece we encounter is of the same color then the king can't be checked from this direction
-		if (pieceColor == color)
+		// If the first piece we encounter is not of the attacking color then the piece can't be attacked from this direction
+		if (pieceType != Piece::Type::NONE && pieceColor != attackingColor)
 			break;
 
-		// If the first piece we encounter is a rook or queen of the other color then the king is in check
-		if (pieceColor != color && (pieceType == Piece::Type::BISHOP || pieceType == Piece::Type::QUEEN))
+		// If the first piece we encounter is a bishop or queen of attacking color then the piece is attacked
+		if (pieceColor == attackingColor && (pieceType == Piece::Type::BISHOP || pieceType == Piece::Type::QUEEN))
 			return true;
 
 		positionToCheck = positionToCheck.UpLeft();
 	}
 
 	// Check in the up-right direction
-	positionToCheck = kingPosition.UpRight();
+	positionToCheck = position.UpRight();
 	while (validPosition(positionToCheck))
 	{
 		Piece::Type pieceType = this->getPiece(positionToCheck).getType();
 		Piece::Color pieceColor = this->getPiece(positionToCheck).getColor();
 
-		// If the first piece we encounter is of the same color then the king can't be checked from this direction
-		if (pieceColor == color)
+		// If the first piece we encounter is not of the attacking color then the piece can't be attacked from this direction
+		if (pieceType != Piece::Type::NONE && pieceColor != attackingColor)
 			break;
 
-		// If the first piece we encounter is a rook or queen of the other color then the king is in check
-		if (pieceColor != color && (pieceType == Piece::Type::BISHOP || pieceType == Piece::Type::QUEEN))
+		// If the first piece we encounter is a bishop or queen of attacking color then the piece is attacked
+		if (pieceColor == attackingColor && (pieceType == Piece::Type::BISHOP || pieceType == Piece::Type::QUEEN))
 			return true;
 
 		positionToCheck = positionToCheck.UpRight();
 	}
 
 	// Check in the down-left direction
-	positionToCheck = kingPosition.DownLeft();
+	positionToCheck = position.DownLeft();
 	while (validPosition(positionToCheck))
 	{
 		Piece::Type pieceType = this->getPiece(positionToCheck).getType();
 		Piece::Color pieceColor = this->getPiece(positionToCheck).getColor();
 
-		// If the first piece we encounter is of the same color then the king can't be checked from this direction
-		if (pieceColor == color)
+		// If the first piece we encounter is not of the attacking color then the piece can't be attacked from this direction
+		if (pieceType != Piece::Type::NONE && pieceColor != attackingColor)
 			break;
 
-		// If the first piece we encounter is a rook or queen of the other color then the king is in check
-		if (pieceColor != color && (pieceType == Piece::Type::BISHOP || pieceType == Piece::Type::QUEEN))
+		// If the first piece we encounter is a bishop or queen of attacking color then the piece is attacked
+		if (pieceColor == attackingColor && (pieceType == Piece::Type::BISHOP || pieceType == Piece::Type::QUEEN))
 			return true;
 
 		positionToCheck = positionToCheck.DownLeft();
 	}
 
 	// Check in the down-right direction
-	positionToCheck = kingPosition.DownRight();
+	positionToCheck = position.DownRight();
 	while (validPosition(positionToCheck))
 	{
 		Piece::Type pieceType = this->getPiece(positionToCheck).getType();
 		Piece::Color pieceColor = this->getPiece(positionToCheck).getColor();
 
-		// If the first piece we encounter is of the same color then the king can't be checked from this direction
-		if (pieceColor == color)
+		// If the first piece we encounter is not of the attacking color then the piece can't be attacked from this direction
+		if (pieceType != Piece::Type::NONE && pieceColor != attackingColor)
 			break;
 
-		// If the first piece we encounter is a rook or queen of the other color then the king is in check
-		if (pieceColor != color && (pieceType == Piece::Type::BISHOP || pieceType == Piece::Type::QUEEN))
+		// If the first piece we encounter is a bishop or queen of attacking color then the piece is attacked
+		if (pieceColor == attackingColor && (pieceType == Piece::Type::BISHOP || pieceType == Piece::Type::QUEEN))
 			return true;
 
 		positionToCheck = positionToCheck.DownRight();
 	}
 
 	// Check for knights
-	int row = kingPosition.row();
-	int column = kingPosition.column();
+	int row = position.row();
+	int column = position.column();
 
-	// All possible positions from which a knigt can check the king
+	// All possible positions from which a knight can attack the piece
 	Piece pieces[8] =
 	{
 		validPosition(row - 1, column - 2) ? this->board[row - 1][column - 2] : Piece(),
@@ -526,13 +518,20 @@ bool Board::isInCheck(const Piece::Color color)
 		validPosition(row + 2, column + 1) ? this->board[row + 2][column + 1] : Piece(),
 		validPosition(row + 1, column + 2) ? this->board[row + 1][column + 2] : Piece()
 	};
-	
-	// Check if there is a knight of the other color on each of the possible positions
+
+	// Check if there is a knight of the attacking color on each of the possible positions
 	for (int i = 0; i < 8; i++)
-		if (pieces[i].getType() == Piece::KNIGHT && pieces[i].getColor() != color)
+		if (pieces[i].getType() == Piece::KNIGHT && pieces[i].getColor() == attackingColor)
 			return true;
 
 	return false;
+}
+
+bool Board::isInCheck(const Piece::Color color)
+{
+	if (color == Piece::Color::WHITE)
+		return this->isAttackedBy(this->whiteKingPosition, Piece::Color::BLACK);
+	return this->isAttackedBy(this->blackKingPosition, Piece::Color::WHITE);
 }
 
 bool Board::checkmate(const Piece::Color color)
