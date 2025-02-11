@@ -571,6 +571,16 @@ bool Board::isAttackedBy(Position position, const Piece::Color attackingColor)
 		if (pieces[i].getType() == Piece::KNIGHT && pieces[i].getColor() == attackingColor)
 			return true;
 
+	// Check for kings
+	int row = position.row();
+	int column = position.column();
+
+	for (int i = row - 1; i <= row + 1; i++)
+		for (int j = column - 1; j <= column + 1; j++)
+			if (i != row || j != column && validPosition(i, j))
+				if (this->board[i][j].getType() == Piece::Type::KING)
+					return true;
+
 	return false;
 }
 
