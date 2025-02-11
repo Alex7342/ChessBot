@@ -155,8 +155,6 @@ void Board::addPawnMoves(std::vector<Move>& moves, Piece piece)
 				moves.push_back(Move(piece.getPosition(), Position(row - 2, column)));
 		}
 
-		// TODO Check if the last move allows en passant
-
 		if (validPosition(row - 1, column - 1))
 		{
 			// Capture black piece up-left
@@ -341,7 +339,9 @@ void Board::addKingMoves(std::vector<Move>& moves, Piece piece)
 	{
 		// Get the color opposing the color of the king
 		auto otherColor = piece.getColor() == Piece::Color::WHITE ? Piece::Color::BLACK : Piece::Color::WHITE;
-
+		
+		// TODO Check if the piece we are getting is actually the rook
+		
 		// Check if the queenside rook has moved
 		if (!this->getPiece(Position(row, 0)).hasMoved())
 		{
@@ -836,6 +836,8 @@ void Board::makeMove(Move move)
 
 	// Add the piece to move to the target square
 	Piece movedPiece = Piece(pieceToMove.getType(), pieceToMove.getColor(), targetPosition, true); // Get a new piece with correct position and hasMoved
+	if (move.getPromotionType() != Piece::Type::NONE && pieceToMove.getType() == Piece::Type::PAWN) // Check if the move is a pawn promotion
+		movedPiece.setType(move.getPromotionType());
 	this->addPiece(movedPiece);
 
 	// Add a separator to the stack to mark the end of the move
