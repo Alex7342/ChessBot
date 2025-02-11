@@ -148,7 +148,18 @@ void Board::addPawnMoves(std::vector<Move>& moves, Piece piece)
 		// Go one square up
 		if (validPosition(row - 1, column) && this->board[row - 1][column].getType() == Piece::Type::NONE)
 		{
-			moves.push_back(Move(piece.getPosition(), Position(row - 1, column)));
+			// Check for promotion possibilty
+			if (row - 1 == 0)
+			{
+				moves.push_back(Move(piece.getPosition(), Position(row - 1, column), Piece::Type::QUEEN));
+				moves.push_back(Move(piece.getPosition(), Position(row - 1, column), Piece::Type::ROOK));
+				moves.push_back(Move(piece.getPosition(), Position(row - 1, column), Piece::Type::BISHOP));
+				moves.push_back(Move(piece.getPosition(), Position(row - 1, column), Piece::Type::KNIGHT));
+			}
+			else
+			{
+				moves.push_back(Move(piece.getPosition(), Position(row - 1, column)));
+			}
 
 			// If on first move then go one more square up
 			if (!piece.hasMoved() && validPosition(row - 2, column) && this->board[row - 2][column].getType() == Piece::Type::NONE)
@@ -160,7 +171,20 @@ void Board::addPawnMoves(std::vector<Move>& moves, Piece piece)
 			// Capture black piece up-left
 			if (this->board[row - 1][column - 1].getType() != Piece::Type::NONE && this->board[row - 1][column - 1].getType() != Piece::Type::KING)
 				if (this->board[row - 1][column - 1].getColor() != piece.getColor())
-					moves.push_back(Move(piece.getPosition(), Position(row - 1, column - 1)));
+				{
+					// Check for promotion possibilty
+					if (row - 1 == 0)
+					{
+						moves.push_back(Move(piece.getPosition(), Position(row - 1, column - 1), Piece::Type::QUEEN));
+						moves.push_back(Move(piece.getPosition(), Position(row - 1, column - 1), Piece::Type::ROOK));
+						moves.push_back(Move(piece.getPosition(), Position(row - 1, column - 1), Piece::Type::BISHOP));
+						moves.push_back(Move(piece.getPosition(), Position(row - 1, column - 1), Piece::Type::KNIGHT));
+					}
+					else
+					{
+						moves.push_back(Move(piece.getPosition(), Position(row - 1, column - 1)));
+					}
+				}
 
 			// En passant
 			if (row == 3)
@@ -180,7 +204,20 @@ void Board::addPawnMoves(std::vector<Move>& moves, Piece piece)
 			// Capture black piece up-right
 			if (this->board[row - 1][column + 1].getType() != Piece::Type::NONE && this->board[row - 1][column + 1].getType() != Piece::Type::KING)
 				if (this->board[row - 1][column + 1].getColor() != piece.getColor())
-					moves.push_back(Move(piece.getPosition(), Position(row - 1, column + 1)));
+				{
+					// Check for promotion possibilty
+					if (row - 1 == 0)
+					{
+						moves.push_back(Move(piece.getPosition(), Position(row - 1, column + 1), Piece::Type::QUEEN));
+						moves.push_back(Move(piece.getPosition(), Position(row - 1, column + 1), Piece::Type::ROOK));
+						moves.push_back(Move(piece.getPosition(), Position(row - 1, column + 1), Piece::Type::BISHOP));
+						moves.push_back(Move(piece.getPosition(), Position(row - 1, column + 1), Piece::Type::KNIGHT));
+					}
+					else
+					{
+						moves.push_back(Move(piece.getPosition(), Position(row - 1, column + 1)));
+					}
+				}
 
 			// En passant
 			if (row == 3)
@@ -199,7 +236,18 @@ void Board::addPawnMoves(std::vector<Move>& moves, Piece piece)
 		// Go one square down
 		if (validPosition(row + 1, column) && this->board[row + 1][column].getType() == Piece::Type::NONE)
 		{
-			moves.push_back(Move(piece.getPosition(), Position(row + 1, column)));
+			// Check for promotion possibilty
+			if (row + 1 == 7)
+			{
+				moves.push_back(Move(piece.getPosition(), Position(row + 1, column), Piece::Type::QUEEN));
+				moves.push_back(Move(piece.getPosition(), Position(row + 1, column), Piece::Type::ROOK));
+				moves.push_back(Move(piece.getPosition(), Position(row + 1, column), Piece::Type::BISHOP));
+				moves.push_back(Move(piece.getPosition(), Position(row + 1, column), Piece::Type::KNIGHT));
+			}
+			else
+			{
+				moves.push_back(Move(piece.getPosition(), Position(row + 1, column)));
+			}
 
 			// If on first move then go one more square down
 			if (!piece.hasMoved() && validPosition(row + 2, column) && this->board[row + 2][column].getType() == Piece::Type::NONE)
@@ -211,7 +259,20 @@ void Board::addPawnMoves(std::vector<Move>& moves, Piece piece)
 			// Capture white piece down-left
 			if (this->board[row + 1][column - 1].getType() != Piece::Type::NONE && this->board[row + 1][column - 1].getType() != Piece::Type::KING)
 				if (this->board[row + 1][column - 1].getColor() != piece.getColor())
-					moves.push_back(Move(piece.getPosition(), Position(row + 1, column - 1)));
+				{
+					// Check for promotion possibilty
+					if (row + 1 == 7)
+					{
+						moves.push_back(Move(piece.getPosition(), Position(row + 1, column - 1), Piece::Type::QUEEN));
+						moves.push_back(Move(piece.getPosition(), Position(row + 1, column - 1), Piece::Type::ROOK));
+						moves.push_back(Move(piece.getPosition(), Position(row + 1, column - 1), Piece::Type::BISHOP));
+						moves.push_back(Move(piece.getPosition(), Position(row + 1, column - 1), Piece::Type::KNIGHT));
+					}
+					else
+					{
+						moves.push_back(Move(piece.getPosition(), Position(row + 1, column - 1)));
+					}
+				}
 
 			// En passant
 			if (row == 4)
@@ -230,7 +291,20 @@ void Board::addPawnMoves(std::vector<Move>& moves, Piece piece)
 			// Capture white piece down-right
 			if (this->board[row + 1][column + 1].getType() != Piece::Type::NONE && this->board[row + 1][column + 1].getType() != Piece::Type::KING)
 				if (this->board[row + 1][column + 1].getColor() != piece.getColor())
-					moves.push_back(Move(piece.getPosition(), Position(row + 1, column + 1)));
+				{
+					// Check for promotion possibilty
+					if (row + 1 == 7)
+					{
+						moves.push_back(Move(piece.getPosition(), Position(row + 1, column + 1), Piece::Type::QUEEN));
+						moves.push_back(Move(piece.getPosition(), Position(row + 1, column + 1), Piece::Type::ROOK));
+						moves.push_back(Move(piece.getPosition(), Position(row + 1, column + 1), Piece::Type::BISHOP));
+						moves.push_back(Move(piece.getPosition(), Position(row + 1, column + 1), Piece::Type::KNIGHT));
+					}
+					else
+					{
+						moves.push_back(Move(piece.getPosition(), Position(row + 1, column + 1)));
+					}
+				}
 
 			// En passant
 			if (row == 4)
