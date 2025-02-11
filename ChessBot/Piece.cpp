@@ -17,6 +17,11 @@ Piece::Type Piece::getType() const
 	return this->type;
 }
 
+void Piece::setType(const Type newType)
+{
+	this->type = newType;
+}
+
 Piece::Color Piece::getColor() const
 {
 	return this->color;

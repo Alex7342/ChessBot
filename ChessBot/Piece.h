@@ -28,6 +28,7 @@ public:
 	Piece(Piece::Type type, Piece::Color color, Position position, bool hasMoved = false);
 
 	Piece::Type getType() const;
+	void setType(const Type newType);
 	Piece::Color getColor() const;
 	Position getPosition() const;
 	bool hasMoved() const;
