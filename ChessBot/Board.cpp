@@ -165,9 +165,15 @@ void Board::addPawnMoves(std::vector<Move>& moves, Piece piece)
 					moves.push_back(Move(piece.getPosition(), Position(row - 1, column - 1)));
 
 			// En passant
-			if (this->board[row - 1][column - 1].getType() == Piece::Type::NONE)
-				if (this->board[row][column - 1].getType() == Piece::Type::PAWN && this->board[row][column - 1].getColor() != piece.getColor())
-					moves.push_back(Move(piece.getPosition(), Position(row - 1, column - 1)));
+			if (row == 3)
+			{
+				Piece lastRemovedPiece = this->removedPieces.top();
+				Piece lastAddedPiece = this->addedPieces.top();
+
+				if (lastRemovedPiece.getType() == Piece::Type::PAWN && lastAddedPiece.getType() == Piece::Type::PAWN) // Check if the last moved piece is a pawn
+					if (!lastRemovedPiece.hasMoved() && lastAddedPiece.getPosition() == Position(row, column - 1)) // Check if the pawn moved 2 pieces forward
+						moves.push_back(Move(piece.getPosition(), Position(row - 1, column - 1)));
+			}
 		}
 
 		
@@ -179,9 +185,15 @@ void Board::addPawnMoves(std::vector<Move>& moves, Piece piece)
 					moves.push_back(Move(piece.getPosition(), Position(row - 1, column + 1)));
 
 			// En passant
-			if (this->board[row - 1][column + 1].getType() == Piece::Type::NONE)
-				if (this->board[row][column + 1].getType() == Piece::Type::PAWN && this->board[row][column + 1].getColor() != piece.getColor())
-					moves.push_back(Move(piece.getPosition(), Position(row - 1, column + 1)));
+			if (row == 3)
+			{
+				Piece lastRemovedPiece = this->removedPieces.top();
+				Piece lastAddedPiece = this->addedPieces.top();
+
+				if (lastRemovedPiece.getType() == Piece::Type::PAWN && lastAddedPiece.getType() == Piece::Type::PAWN) // Check if the last moved piece is a pawn
+					if (!lastRemovedPiece.hasMoved() && lastAddedPiece.getPosition() == Position(row, column + 1)) // Check if the pawn moved 2 pieces forward
+						moves.push_back(Move(piece.getPosition(), Position(row - 1, column + 1)));
+			}
 		}
 	}
 	else
@@ -196,8 +208,6 @@ void Board::addPawnMoves(std::vector<Move>& moves, Piece piece)
 				moves.push_back(Move(piece.getPosition(), Position(row + 2, column)));
 		}
 
-		// TODO Check if the last move allows en passant
-
 		if (validPosition(row + 1, column - 1))
 		{
 			// Capture white piece down-left
@@ -206,9 +216,15 @@ void Board::addPawnMoves(std::vector<Move>& moves, Piece piece)
 					moves.push_back(Move(piece.getPosition(), Position(row + 1, column - 1)));
 
 			// En passant
-			if (this->board[row + 1][column - 1].getType() == Piece::Type::NONE)
-				if (this->board[row][column - 1].getType() == Piece::Type::PAWN && this->board[row][column - 1].getColor() != piece.getColor())
-					moves.push_back(Move(piece.getPosition(), Position(row + 1, column - 1)));
+			if (row == 4)
+			{
+				Piece lastRemovedPiece = this->removedPieces.top();
+				Piece lastAddedPiece = this->addedPieces.top();
+
+				if (lastRemovedPiece.getType() == Piece::Type::PAWN && lastAddedPiece.getType() == Piece::Type::PAWN) // Check if the last moved piece is a pawn
+					if (!lastRemovedPiece.hasMoved() && lastAddedPiece.getPosition() == Position(row, column - 1)) // Check if the pawn moved 2 pieces forward
+						moves.push_back(Move(piece.getPosition(), Position(row + 1, column - 1)));
+			}
 		}
 
 		if (validPosition(row + 1, column + 1))
@@ -219,9 +235,15 @@ void Board::addPawnMoves(std::vector<Move>& moves, Piece piece)
 					moves.push_back(Move(piece.getPosition(), Position(row + 1, column + 1)));
 
 			// En passant
-			if (this->board[row + 1][column + 1].getType() == Piece::Type::NONE)
-				if (this->board[row][column + 1].getType() == Piece::Type::PAWN && this->board[row][column + 1].getColor() != piece.getColor())
-					moves.push_back(Move(piece.getPosition(), Position(row + 1, column + 1)));
+			if (row == 4)
+			{
+				Piece lastRemovedPiece = this->removedPieces.top();
+				Piece lastAddedPiece = this->addedPieces.top();
+
+				if (lastRemovedPiece.getType() == Piece::Type::PAWN && lastAddedPiece.getType() == Piece::Type::PAWN) // Check if the last moved piece is a pawn
+					if (!lastRemovedPiece.hasMoved() && lastAddedPiece.getPosition() == Position(row, column + 1)) // Check if the pawn moved 2 pieces forward
+						moves.push_back(Move(piece.getPosition(), Position(row + 1, column + 1)));
+			}
 		}
 	}
 }
