@@ -281,7 +281,7 @@ void Board::addKingMoves(std::vector<Move>& moves, Piece piece)
 	// Check all position surrounding the king
 	for (int i = row - 1; i <= row + 1; i++)
 		for (int j = column - 1; j <= column + 1; j++)
-			if (i != row || j != row) // Check if the square we try to make the move on is not the current one
+			if (i != row || j != column) // Check if the square we try to make the move on is not the current one
 				if (this->availableSquare(piece.getColor(), i, j))
 					moves.push_back(Move(piece.getPosition(), Position(i, j)));
 
