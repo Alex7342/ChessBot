@@ -572,8 +572,8 @@ bool Board::isAttackedBy(Position position, const Piece::Color attackingColor)
 			return true;
 
 	// Check for kings
-	int row = position.row();
-	int column = position.column();
+	row = position.row();
+	column = position.column();
 
 	for (int i = row - 1; i <= row + 1; i++)
 		for (int j = column - 1; j <= column + 1; j++)
