@@ -155,6 +155,8 @@ void Board::addPawnMoves(std::vector<Move>& moves, Piece piece)
 				moves.push_back(Move(piece.getPosition(), Position(row - 2, column)));
 		}
 
+		// TODO Check if the last move allows en passant
+
 		if (validPosition(row - 1, column - 1))
 		{
 			// Capture black piece up-left
@@ -193,6 +195,8 @@ void Board::addPawnMoves(std::vector<Move>& moves, Piece piece)
 			if (!piece.hasMoved() && validPosition(row + 2, column) && this->board[row + 2][column].getType() == Piece::Type::NONE)
 				moves.push_back(Move(piece.getPosition(), Position(row + 2, column)));
 		}
+
+		// TODO Check if the last move allows en passant
 
 		if (validPosition(row + 1, column - 1))
 		{
