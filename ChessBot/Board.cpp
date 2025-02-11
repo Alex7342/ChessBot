@@ -194,19 +194,31 @@ void Board::addPawnMoves(std::vector<Move>& moves, Piece piece)
 				moves.push_back(Move(piece.getPosition(), Position(row + 2, column)));
 		}
 
-		// Capture white piece down-left
 		if (validPosition(row + 1, column - 1))
+		{
+			// Capture white piece down-left
 			if (this->board[row + 1][column - 1].getType() != Piece::Type::NONE && this->board[row + 1][column - 1].getType() != Piece::Type::KING)
 				if (this->board[row + 1][column - 1].getColor() != piece.getColor())
-				moves.push_back(Move(piece.getPosition(), Position(row + 1, column - 1)));
+					moves.push_back(Move(piece.getPosition(), Position(row + 1, column - 1)));
 
-		// Capture white piece down-right
+			// En passant
+			if (this->board[row + 1][column - 1].getType() == Piece::Type::NONE)
+				if (this->board[row][column - 1].getType() == Piece::Type::PAWN && this->board[row][column - 1].getColor() != piece.getColor())
+					moves.push_back(Move(piece.getPosition(), Position(row + 1, column - 1)));
+		}
+
 		if (validPosition(row + 1, column + 1))
+		{
+			// Capture white piece down-right
 			if (this->board[row + 1][column + 1].getType() != Piece::Type::NONE && this->board[row + 1][column + 1].getType() != Piece::Type::KING)
 				if (this->board[row + 1][column + 1].getColor() != piece.getColor())
-				moves.push_back(Move(piece.getPosition(), Position(row + 1, column + 1)));
+					moves.push_back(Move(piece.getPosition(), Position(row + 1, column + 1)));
 
-		// TODO Implement en passant
+			// En passant
+			if (this->board[row + 1][column + 1].getType() == Piece::Type::NONE)
+				if (this->board[row][column + 1].getType() == Piece::Type::PAWN && this->board[row][column + 1].getColor() != piece.getColor())
+					moves.push_back(Move(piece.getPosition(), Position(row + 1, column + 1)));
+		}
 	}
 }
 
