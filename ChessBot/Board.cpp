@@ -414,10 +414,9 @@ void Board::addKingMoves(std::vector<Move>& moves, Piece piece)
 		// Get the color opposing the color of the king
 		auto otherColor = piece.getColor() == Piece::Color::WHITE ? Piece::Color::BLACK : Piece::Color::WHITE;
 		
-		// TODO Check if the piece we are getting is actually the rook
-		
 		// Check if the queenside rook has moved
-		if (!this->getPiece(Position(row, 0)).hasMoved())
+		Piece possibleRook = this->getPiece(Position(row, 0));
+		if (possibleRook.getType() == Piece::Type::ROOK && !possibleRook.hasMoved())
 		{
 			bool canCastle = true;
 
@@ -439,7 +438,8 @@ void Board::addKingMoves(std::vector<Move>& moves, Piece piece)
 		}
 
 		// Check if the kingside rook has moved
-		if (!this->getPiece(Position(row, 7)).hasMoved())
+		Piece possibleRook = this->getPiece(Position(row, 7));
+		if (possibleRook.getType() == Piece::Type::ROOK && !possibleRook.hasMoved())
 		{
 			bool canCastle = true;
 
@@ -703,7 +703,7 @@ bool Board::isAttackedBy(Position position, const Piece::Color attackingColor)
 	for (int i = row - 1; i <= row + 1; i++)
 		for (int j = column - 1; j <= column + 1; j++)
 			if (i != row || j != column && validPosition(i, j))
-				if (this->board[i][j].getType() == Piece::Type::KING)
+				if (this->board[i][j].getType() == Piece::Type::KING && this->board[i][j].getColor() == attackingColor)
 					return true;
 
 	return false;
