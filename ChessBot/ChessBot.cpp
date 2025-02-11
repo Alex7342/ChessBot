@@ -32,7 +32,7 @@ int main()
         }
         else
         {
-           auto start = std::chrono::high_resolution_clock::now();
+            auto start = std::chrono::high_resolution_clock::now();
             Move move = board.getBestMove(playerToMove);
             auto stop = std::chrono::high_resolution_clock::now();
 
@@ -41,15 +41,6 @@ int main()
 
             board.makeMove(move);
             std::cout << "Black moved: " << move.toString() << "\n";
-
-            /*std::cout << "Enter move for black: ";
-
-            int initialRow, initialColumn;
-            int targetRow, targetColumn;
-
-            std::cin >> initialRow >> initialColumn >> targetRow >> targetColumn;
-
-            board.makeMove(Move(Position(initialRow, initialColumn), Position(targetRow, targetColumn)));*/
 
             playerToMove = Piece::Color::WHITE;
         }
