@@ -812,6 +812,16 @@ void Board::makeMove(Move move)
 		}
 	}
 
+	// Check if the move is an en passant move
+	if (this->getPiece(initialPosition).getType() == Piece::Type::PAWN && this->getPiece(targetPosition).getType() == Piece::Type::NONE)
+	{
+		if (targetPosition.column() != initialPosition.column()) // Check if the pawn moves diagonally
+		{
+			this->enPassant(move);
+			return;
+		}
+	}
+
 	Piece pieceToMove = this->board[initialPosition.row()][initialPosition.column()];
 	Piece pieceToGetCaptured = this->board[targetPosition.row()][targetPosition.column()];
 
