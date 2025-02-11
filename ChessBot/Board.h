@@ -67,7 +67,8 @@ private:
 
 	// Special case of makeMove for handling castles
 	void castle(Move move);
-
+	// Special case of makeMove for handling en passant
+	void enPassant(Move move);
 public:
 	Board();
 

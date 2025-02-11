@@ -719,6 +719,25 @@ void Board::castle(Move move)
 	this->actionsMade.push(Action::SEPARATOR);
 }
 
+void Board::enPassant(Move move)
+{
+	Position initialPosition = move.getInitialPosition();
+	Position targetPosition = move.getTargetPosition();
+	Piece pawn = this->getPiece(initialPosition);
+
+	// Remove the captured pawn below targetPosition
+	this->removePiece(this->getPiece(targetPosition.Down()));
+
+	// Remove the pawn from its initial position
+	this->removePiece(pawn);
+
+	// Create a new pawn piece at the target position with hasMoved = true
+	Piece movedPawn = Piece(pawn.getType(), pawn.getColor(), targetPosition, true);
+	this->addPiece(movedPawn);
+
+	this->actionsMade.push(Action::SEPARATOR);
+}
+
 void Board::makeMove(Move move)
 {
 	Position initialPosition = move.getInitialPosition();
