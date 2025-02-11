@@ -38,6 +38,11 @@ bool Piece::hasMoved() const
 	return this->_hasMoved;
 }
 
+void Piece::setHasMoved(const bool newHasMoved)
+{
+	this->_hasMoved = newHasMoved;
+}
+
 bool Piece::operator==(const Piece& other) const
 {
 	return this->position == other.position;

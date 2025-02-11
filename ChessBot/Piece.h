@@ -32,6 +32,7 @@ public:
 	Piece::Color getColor() const;
 	Position getPosition() const;
 	bool hasMoved() const;
+	void setHasMoved(const bool newHasMoved);
 	void move(Position targetPosition);
 
 	bool operator ==(const Piece& other) const;
