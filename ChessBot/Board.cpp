@@ -851,7 +851,8 @@ void Board::enPassant(Move move)
 	Piece pawn = this->getPiece(initialPosition);
 
 	// Remove the captured pawn below targetPosition
-	this->removePiece(this->getPiece(targetPosition.Down()));
+	Position positionToCapture = (pawn.getColor() == Piece::Color::WHITE) ? targetPosition.Down() : targetPosition.Up();
+	this->removePiece(this->getPiece(positionToCapture));
 
 	// Remove the pawn from its initial position
 	this->removePiece(pawn);
