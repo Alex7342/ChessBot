@@ -1,6 +1,6 @@
 #pragma once
 #include <vector>
-#include "Move.h"
+#include "Position.h"
 
 class Piece
 {
