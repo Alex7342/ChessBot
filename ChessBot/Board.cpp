@@ -438,7 +438,7 @@ void Board::addKingMoves(std::vector<Move>& moves, Piece piece)
 		}
 
 		// Check if the kingside rook has moved
-		Piece possibleRook = this->getPiece(Position(row, 7));
+		possibleRook = this->getPiece(Position(row, 7));
 		if (possibleRook.getType() == Piece::Type::ROOK && !possibleRook.hasMoved())
 		{
 			bool canCastle = true;
