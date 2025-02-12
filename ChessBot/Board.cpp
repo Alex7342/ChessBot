@@ -1117,7 +1117,7 @@ Move Board::getBestMove(const Piece::Color playerToMove)
 
 	for (int depth = 1; depth <= searchDepth; depth++)
 	{
-		result = this->minimax(searchDepth, INT_MIN, INT_MAX, playerToMove == Piece::Color::WHITE).move;
+		result = this->minimax(depth, INT_MIN, INT_MAX, playerToMove == Piece::Color::WHITE).move;
 		this->bestMoveForPreviousDepth = result;
 	}
 
