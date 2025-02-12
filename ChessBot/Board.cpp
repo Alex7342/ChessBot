@@ -1,5 +1,6 @@
 #include "Board.h"
 #include "Move.h"
+#include <algorithm>
 
 int getColorIndex(const Piece::Color color)
 {
@@ -874,6 +875,8 @@ std::vector<Move> Board::getMoves(const Piece::Color playerColor) const
 		}
 	}
 
+	std::sort(moves.begin(), moves.end(), [&](const Move& a, const Move& b) { return this->compareMoves(a, b); });
+
 	return moves;
 }
 
@@ -950,6 +953,53 @@ void Board::enPassant(const Move move)
 	this->addPiece(movedPawn);
 
 	this->actionsMade.push(Action::SEPARATOR);
+}
+
+bool Board::compareMoves(const Move& firstMove, const Move& secondMove) const
+{
+	Position firstTargetPosition = firstMove.getTargetPosition();
+	Position secondTargetPosition = secondMove.getTargetPosition();
+
+	Piece::Type firstCapturedPieceType = this->getPiece(firstTargetPosition).getType();
+	Piece::Type secondCapturedPieceType = this->getPiece(secondTargetPosition).getType();
+
+	if (pieceValue[firstCapturedPieceType] > pieceValue[secondCapturedPieceType]) // Check if the first move captures a more valuable piece than the second move does
+		return true;
+
+	Position firstInitialPosition = firstMove.getInitialPosition();
+	Position secondInitialPosition = secondMove.getInitialPosition();
+
+	Piece::Type firstPieceType = this->getPiece(firstInitialPosition).getType();
+	Piece::Type secondPieceType = this->getPiece(secondInitialPosition).getType();
+
+	if (pieceValue[firstCapturedPieceType] == pieceValue[secondCapturedPieceType]) // In case of equal captures
+		if (pieceValue[firstPieceType] < pieceValue[secondPieceType]) // Check if the capturing piece of the first move is less valuable than the one of the second move
+			return true;
+
+	if (pieceValue[firstCapturedPieceType] == pieceValue[secondCapturedPieceType]) // In case of equal captures
+		if (pieceValue[firstPieceType] == pieceValue[secondPieceType]) // And equal pieces
+		{
+			// Check if the first move gains a higher positional advantage then the second one
+			int firstDifference = 0;
+			int secondDifference = 0;
+			Piece::Color color = this->getPiece(firstInitialPosition).getColor();
+
+			if (color == Piece::Color::WHITE)
+			{
+				firstDifference = positionValue[firstPieceType][firstTargetPosition.row()][firstTargetPosition.column()] - positionValue[firstPieceType][firstInitialPosition.row()][firstInitialPosition.column()];
+				secondDifference = positionValue[secondPieceType][secondTargetPosition.row()][secondTargetPosition.column()] - positionValue[secondPieceType][secondInitialPosition.row()][secondInitialPosition.column()];
+			}
+			else
+			{
+				firstDifference = positionValue[firstPieceType][7 - firstTargetPosition.row()][firstTargetPosition.column()] - positionValue[firstPieceType][7 - firstInitialPosition.row()][firstInitialPosition.column()];
+				secondDifference = positionValue[secondPieceType][7 -secondTargetPosition.row()][secondTargetPosition.column()] - positionValue[secondPieceType][7 - secondInitialPosition.row()][secondInitialPosition.column()];
+			}
+
+			if (firstDifference > secondDifference)
+				return true;
+		}
+
+	return false;
 }
 
 void Board::makeMove(const Move move)

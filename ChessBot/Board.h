@@ -99,6 +99,11 @@ private:
 	// Special case of makeMove for handling en passant
 	void enPassant(const Move move);
 
+	
+	// Function to compare probable move value
+	bool compareMoves(const Move& firstMove, const Move& secondMove) const;
+
+
 	// Value used for board evaluation
 	int evaluation;
 
