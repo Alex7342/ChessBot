@@ -75,7 +75,7 @@ Board::Board()
 		}
 }
 
-Piece Board::getPiece(const Position position)
+Piece Board::getPiece(const Position position) const
 {
 	return this->board[position.row()][position.column()];
 }
@@ -92,8 +92,7 @@ bool validPosition(const Position position)
 	return 0 <= position.row() && position.row() < 8 && 0 <= position.column() && position.column() < 8;
 }
 
-// Check if any piece of the given color can move the given square assuming it has access to it (NOT SUITABLE FOR PAWNS)
-bool Board::availableSquare(const Piece::Color color, const int row, const int column)
+bool Board::availableSquare(const Piece::Color color, const int row, const int column) const
 {
 	if (!validPosition(row, column)) // Return false if the position is out of the board
 		return false;
@@ -112,8 +111,7 @@ bool Board::availableSquare(const Piece::Color color, const int row, const int c
 	return false;
 }
 
-// Add all possible moves of a piece in a direction to a container reference given as a parameter
-void Board::addAllMovesInDirection(std::vector<Move>& moves, const Piece piece, const int rowChange, const int columnChange)
+void Board::addAllMovesInDirection(std::vector<Move>& moves, const Piece piece, const int rowChange, const int columnChange) const
 {
 	Position position = piece.getPosition();
 	while (true) // Loop until finding a stop condition
@@ -137,8 +135,7 @@ void Board::addAllMovesInDirection(std::vector<Move>& moves, const Piece piece, 
 	}
 }
 
-// Add all possible moves of a given pawn to a container reference given as a parameter
-void Board::addPawnMoves(std::vector<Move>& moves, Piece piece)
+void Board::addPawnMoves(std::vector<Move>& moves, const Piece piece) const
 {
 	int row = piece.getPosition().row();
 	int column = piece.getPosition().column();
@@ -320,8 +317,7 @@ void Board::addPawnMoves(std::vector<Move>& moves, Piece piece)
 	}
 }
 
-// Add all possible moves of a given bishop to a container reference given as a parameter
-void Board::addBishopMoves(std::vector<Move>& moves, Piece piece)
+void Board::addBishopMoves(std::vector<Move>& moves, const Piece piece) const
 {
 	// Get all moves in the up-left direction
 	this->addAllMovesInDirection(moves, piece, -1, -1);
@@ -336,8 +332,7 @@ void Board::addBishopMoves(std::vector<Move>& moves, Piece piece)
 	this->addAllMovesInDirection(moves, piece, 1, 1);
 }
 
-// Add all possible moves of a given knight to a container reference given as a parameter
-void Board::addKnightMoves(std::vector<Move>& moves, Piece piece)
+void Board::addKnightMoves(std::vector<Move>& moves, const Piece piece) const
 {
 	int row = piece.getPosition().row();
 	int column = piece.getPosition().column();
@@ -371,8 +366,7 @@ void Board::addKnightMoves(std::vector<Move>& moves, Piece piece)
 		moves.push_back(Move(piece.getPosition(), Position(row + 1, column + 2)));
 }
 
-// Add all possible moves of a given rook to a container reference given as a parameter
-void Board::addRookMoves(std::vector<Move>& moves, Piece piece)
+void Board::addRookMoves(std::vector<Move>& moves, const Piece piece) const
 {
 	// Get all moves in the up direction
 	this->addAllMovesInDirection(moves, piece, -1, 0);
@@ -387,16 +381,14 @@ void Board::addRookMoves(std::vector<Move>& moves, Piece piece)
 	this->addAllMovesInDirection(moves, piece, 0, 1);
 }
 
-// Add all possible moves of a given queen to a container reference given as a parameter
-void Board::addQueenMoves(std::vector<Move>& moves, Piece piece)
+void Board::addQueenMoves(std::vector<Move>& moves, const Piece piece) const
 {
 	// The queen can move in every square that a rook and a bishop can move
 	this->addRookMoves(moves, piece);
 	this->addBishopMoves(moves, piece);
 }
 
-// Add all possible moves of a given king to a container reference given as a parameter
-void Board::addKingMoves(std::vector<Move>& moves, Piece piece)
+void Board::addKingMoves(std::vector<Move>& moves, const Piece piece) const
 {
 	int row = piece.getPosition().row();
 	int column = piece.getPosition().column();
@@ -505,7 +497,7 @@ void Board::removePiece(const Piece piece, const bool silent)
 	this->occupiedSquares[colorIndex].erase(position);
 }
 
-bool Board::isAttackedBy(Position position, const Piece::Color attackingColor)
+bool Board::isAttackedBy(const Position position, const Piece::Color attackingColor) const
 {
 	if (attackingColor == Piece::Color::BLACK)
 	{
@@ -765,7 +757,7 @@ bool Board::isAttackedBy(Position position, const Piece::Color attackingColor)
 	return false;
 }
 
-bool Board::isInCheck(const Piece::Color color)
+bool Board::isInCheck(const Piece::Color color) const
 {
 	if (color == Piece::Color::WHITE)
 		return this->isAttackedBy(this->whiteKingPosition, Piece::Color::BLACK);
@@ -803,7 +795,7 @@ bool Board::checkmate(const Piece::Color color)
 	return true;
 }
 
-std::vector<Move> Board::getMoves(const Piece::Color playerColor)
+std::vector<Move> Board::getMoves(const Piece::Color playerColor) const
 {
 	int index = getColorIndex(playerColor);
 	std::vector<Move> moves;
@@ -845,7 +837,7 @@ std::vector<Move> Board::getMoves(const Piece::Color playerColor)
 	return moves;
 }
 
-void Board::castle(Move move)
+void Board::castle(const Move move)
 {
 	Position kingInitialPosition = move.getInitialPosition();
 	Position kingTargetPosition = move.getTargetPosition();
@@ -900,7 +892,7 @@ void Board::castle(Move move)
 	this->actionsMade.push(Action::SEPARATOR);
 }
 
-void Board::enPassant(Move move)
+void Board::enPassant(const Move move)
 {
 	Position initialPosition = move.getInitialPosition();
 	Position targetPosition = move.getTargetPosition();
@@ -920,7 +912,7 @@ void Board::enPassant(Move move)
 	this->actionsMade.push(Action::SEPARATOR);
 }
 
-void Board::makeMove(Move move)
+void Board::makeMove(const Move move)
 {
 	Position initialPosition = move.getInitialPosition();
 	Position targetPosition = move.getTargetPosition();
@@ -1055,7 +1047,7 @@ Move Board::getBestMove(const Piece::Color playerToMove)
 	return this->minimax(searchDepth, INT_MIN, INT_MAX, playerToMove == Piece::Color::WHITE).move;
 }
 
-Board::minimaxResult Board::minimax(int depth, int alpha, int beta, bool whiteToMove)
+Board::minimaxResult Board::minimax(int depth, int alpha, int beta, const bool whiteToMove)
 {
 	// Check if the game is over
 	if (this->checkmate(whiteToMove ? Piece::Color::WHITE : Piece::Color::BLACK))
@@ -1128,7 +1120,7 @@ Board::minimaxResult Board::minimax(int depth, int alpha, int beta, bool whiteTo
 	}
 }
 
-std::string Board::toString()
+std::string Board::toString() const
 {
 	std::string boardString;
 
@@ -1166,7 +1158,7 @@ std::string Board::toString()
 	return boardString;
 }
 
-std::string Board::attackedSquaresToString(const Piece::Color color)
+std::string Board::attackedSquaresToString(const Piece::Color color) const
 {
 	std::string boardString;
 
