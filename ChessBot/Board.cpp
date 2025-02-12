@@ -73,6 +73,8 @@ Board::Board()
 				this->occupiedSquares[index].insert(this->board[i][j].getPosition());
 			}
 		}
+	
+	this->evaluation = 0;
 }
 
 Piece Board::getPiece(const Position position) const
@@ -478,6 +480,25 @@ void Board::addPiece(const Piece piece, const bool silent)
 		else
 			this->blackKingPosition = position;
 	}
+
+	// Compute and add value corresponding to the piece to board evaluation
+	int squareValue = pieceValue[piece.getType()];
+
+	if (piece.getColor() == Piece::Color::BLACK)
+	{
+		// The position value table must be inverted for black pieces
+		squareValue += positionValue[piece.getType()][7 - position.row()][position.column()];
+
+		// The value of the square is negative for black pieces
+		squareValue = -squareValue;
+	}
+	else
+	{
+		// Simply add the positional value for a white piece
+		squareValue += positionValue[piece.getType()][position.row()][position.column()];
+	}
+
+	this->evaluation += squareValue;
 }
 
 void Board::removePiece(const Piece piece, const bool silent)
@@ -495,6 +516,25 @@ void Board::removePiece(const Piece piece, const bool silent)
 	// Unmark the previously occupied square
 	int colorIndex = getColorIndex(piece.getColor());
 	this->occupiedSquares[colorIndex].erase(position);
+
+	// Compute and subtract value corresponding to the piece to board evaluation
+	int squareValue = pieceValue[piece.getType()];
+
+	if (piece.getColor() == Piece::Color::BLACK)
+	{
+		// The position value table must be inverted for black pieces
+		squareValue += positionValue[piece.getType()][7 - position.row()][position.column()];
+
+		// The value of the square is negative for black pieces
+		squareValue = -squareValue;
+	}
+	else
+	{
+		// Simply add the positional value for a white piece
+		squareValue += positionValue[piece.getType()][position.row()][position.column()];
+	}
+
+	this->evaluation -= squareValue;
 }
 
 bool Board::isAttackedBy(const Position position, const Piece::Color attackingColor) const
@@ -1009,37 +1049,7 @@ void Board::undoMove()
 // Compute the value of the current state of the board (positive values are better for white and negative values are better for black)
 int Board::evaluate() const
 {
-	int result = 0;
-
-	for (int colorIndex = 0; colorIndex < 2; colorIndex++) // 0 for white and 1 for black
-		for (Position position : this->occupiedSquares[colorIndex])
-		{
-			int row = position.row();
-			int column = position.column();
-
-			int pieceType = this->board[row][column].getType();
-			int pieceColor = this->board[row][column].getColor();
-
-			int squareValue = pieceValue[pieceType]; // Initialize the value of the square with the value of the piece belonging to that square
-
-			if (pieceColor == Piece::Color::BLACK)
-			{
-				// The position value table must be inverted for black pieces
-				squareValue += positionValue[pieceType][7 - row][column];
-
-				// The value of the square is negative for black pieces
-				squareValue = -squareValue;
-			}
-			else
-			{
-				// Simply add the positional value for a white piece
-				squareValue += positionValue[pieceType][row][column];
-			}
-
-			result += squareValue;
-		}
-
-	return result;
+	return this->evaluation;
 }
 
 Move Board::getBestMove(const Piece::Color playerToMove)

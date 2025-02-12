@@ -99,6 +99,8 @@ private:
 	// Special case of makeMove for handling en passant
 	void enPassant(const Move move);
 
+	// Value used for board evaluation
+	int evaluation;
 
 	// The depth of the move search
 	static const int searchDepth = 5;
