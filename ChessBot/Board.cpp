@@ -1,6 +1,7 @@
 #include "Board.h"
 #include "Move.h"
 #include <algorithm>
+#include <iostream>
 
 int getColorIndex(const Piece::Color color)
 {
@@ -1141,6 +1142,10 @@ Board::minimaxResult Board::minimax(int depth, int alpha, int beta, const bool w
 		// Get all the possible moves of the white player
 		std::vector<Move> moves = this->getMoves(Piece::Color::WHITE);
 
+		// Reset the best move from the previous depth if we already used it to avoid affecting move generation at deeper game tree levels
+		if (!moves.empty() && moves.front() == this->bestMoveForPreviousDepth)
+			this->bestMoveForPreviousDepth = Move();
+
 		for (Move move : moves)
 		{
 			this->makeMove(move); // Make the current move
@@ -1171,6 +1176,10 @@ Board::minimaxResult Board::minimax(int depth, int alpha, int beta, const bool w
 
 		// Get all the possible moves of the black player
 		std::vector<Move> moves = this->getMoves(Piece::Color::BLACK);
+
+		// Reset the best move from the previous depth if we already used it to avoid affecting move generation at deeper game tree levels
+		if (!moves.empty() && moves.front() == this->bestMoveForPreviousDepth)
+			this->bestMoveForPreviousDepth = Move();
 
 		for (Move move : moves)
 		{
