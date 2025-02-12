@@ -34,7 +34,7 @@ int main()
 
             Move move = Move(Position(initialRow, initialColumn), Position(targetRow, targetColumn));
 
-            if (targetRow == 0)
+            if (targetRow == 0 && board.getPiece(Position(targetRow, targetColumn)).getType() == Piece::Type::PAWN)
             {
                 std::cout << "Promote pawn to (Q, R, B, K): ";
                 char promotionType;
