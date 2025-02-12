@@ -17,6 +17,11 @@ Piece::Type Piece::getType() const
 	return this->type;
 }
 
+void Piece::setType(const Type newType)
+{
+	this->type = newType;
+}
+
 Piece::Color Piece::getColor() const
 {
 	return this->color;
@@ -31,6 +36,11 @@ void Piece::move(Position targetPosition)
 bool Piece::hasMoved() const
 {
 	return this->_hasMoved;
+}
+
+void Piece::setHasMoved(const bool newHasMoved)
+{
+	this->_hasMoved = newHasMoved;
 }
 
 bool Piece::operator==(const Piece& other) const

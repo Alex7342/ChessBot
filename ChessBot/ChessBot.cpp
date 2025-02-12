@@ -13,6 +13,12 @@ int main()
         std::cout << "Evaluation: " << board.evaluate() << "\n";
         std::cout << board.toString() << "\n\n";
 
+        std::cout << "Attacked by white: " << "\n";
+        std::cout << board.attackedSquaresToString(Piece::Color::WHITE) << "\n\n";
+
+        std::cout << "Attacked by black: " << "\n";
+        std::cout << board.attackedSquaresToString(Piece::Color::BLACK) << "\n\n";
+
         std::vector<Move> moves = board.getMoves(playerToMove);
         for (auto move : moves)
             std::cout << move.toString() << "\n";
@@ -26,7 +32,45 @@ int main()
 
             std::cin >> initialRow >> initialColumn >> targetRow >> targetColumn;
 
-            board.makeMove(Move(Position(initialRow, initialColumn), Position(targetRow, targetColumn)));
+            Move move = Move(Position(initialRow, initialColumn), Position(targetRow, targetColumn));
+
+            if (targetRow == 0 && board.getPiece(Position(targetRow, targetColumn)).getType() == Piece::Type::PAWN)
+            {
+                std::cout << "Promote pawn to (Q, R, B, K): ";
+                char promotionType;
+                std::cin >> promotionType;
+                switch (promotionType)
+                {
+                case 'Q':
+                    move.setPromotionType(Piece::Type::QUEEN);
+                    break;
+                case 'q':
+                    move.setPromotionType(Piece::Type::QUEEN);
+                    break;
+                case 'R':
+                    move.setPromotionType(Piece::Type::ROOK);
+                    break;
+                case 'r':
+                    move.setPromotionType(Piece::Type::ROOK);
+                    break;
+                case 'B':
+                    move.setPromotionType(Piece::Type::BISHOP);
+                    break;
+                case 'b':
+                    move.setPromotionType(Piece::Type::BISHOP);
+                    break;
+                case 'K':
+                    move.setPromotionType(Piece::Type::KNIGHT);
+                    break;
+                case 'k':
+                    move.setPromotionType(Piece::Type::KNIGHT);
+                    break;
+                default:
+                    move.setPromotionType(Piece::Type::QUEEN);
+                }
+            }
+
+            board.makeMove(move);
 
             playerToMove = Piece::Color::BLACK;
         }

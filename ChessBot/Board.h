@@ -56,6 +56,8 @@ private:
 	// The position of the black king
 	Position blackKingPosition;
 
+	// Returns true if the given position is attacked by a piece of the other color, false otherwise
+	bool isAttackedBy(Position position, const Piece::Color attackingColor);
 	// Returns true if the king of given color is in check, false otherwise
 	bool isInCheck(const Piece::Color color);
 	//Returns true if the player of the given color is checkmated, false otherwise
@@ -63,6 +65,10 @@ private:
 
 	minimaxResult minimax(int depth, int alpha, int beta, bool whiteToMove);
 
+	// Special case of makeMove for handling castles
+	void castle(Move move);
+	// Special case of makeMove for handling en passant
+	void enPassant(Move move);
 public:
 	Board();
 
@@ -73,10 +79,13 @@ public:
 	int evaluate() const;
 	Move getBestMove(const Piece::Color playerToMove);
 
+	// Makes the given move on the board
 	void makeMove(Move move);
+	// Undoes the last move that was made
 	void undoMove();
 
 	std::string toString();
+	std::string attackedSquaresToString(const Piece::Color color);
 };
 
 const int pieceValue[7] =

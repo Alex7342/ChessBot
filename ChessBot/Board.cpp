@@ -148,52 +148,175 @@ void Board::addPawnMoves(std::vector<Move>& moves, Piece piece)
 		// Go one square up
 		if (validPosition(row - 1, column) && this->board[row - 1][column].getType() == Piece::Type::NONE)
 		{
-			moves.push_back(Move(piece.getPosition(), Position(row - 1, column)));
+			// Check for promotion possibilty
+			if (row - 1 == 0)
+			{
+				moves.push_back(Move(piece.getPosition(), Position(row - 1, column), Piece::Type::QUEEN));
+				moves.push_back(Move(piece.getPosition(), Position(row - 1, column), Piece::Type::ROOK));
+				moves.push_back(Move(piece.getPosition(), Position(row - 1, column), Piece::Type::BISHOP));
+				moves.push_back(Move(piece.getPosition(), Position(row - 1, column), Piece::Type::KNIGHT));
+			}
+			else
+			{
+				moves.push_back(Move(piece.getPosition(), Position(row - 1, column)));
+			}
 
 			// If on first move then go one more square up
 			if (!piece.hasMoved() && validPosition(row - 2, column) && this->board[row - 2][column].getType() == Piece::Type::NONE)
 				moves.push_back(Move(piece.getPosition(), Position(row - 2, column)));
 		}
 
-		// Capture black piece up-left
 		if (validPosition(row - 1, column - 1))
+		{
+			// Capture black piece up-left
 			if (this->board[row - 1][column - 1].getType() != Piece::Type::NONE && this->board[row - 1][column - 1].getType() != Piece::Type::KING)
 				if (this->board[row - 1][column - 1].getColor() != piece.getColor())
-					moves.push_back(Move(piece.getPosition(), Position(row - 1, column - 1)));
+				{
+					// Check for promotion possibilty
+					if (row - 1 == 0)
+					{
+						moves.push_back(Move(piece.getPosition(), Position(row - 1, column - 1), Piece::Type::QUEEN));
+						moves.push_back(Move(piece.getPosition(), Position(row - 1, column - 1), Piece::Type::ROOK));
+						moves.push_back(Move(piece.getPosition(), Position(row - 1, column - 1), Piece::Type::BISHOP));
+						moves.push_back(Move(piece.getPosition(), Position(row - 1, column - 1), Piece::Type::KNIGHT));
+					}
+					else
+					{
+						moves.push_back(Move(piece.getPosition(), Position(row - 1, column - 1)));
+					}
+				}
 
-		// Capture black piece up-right
+			// En passant
+			if (row == 3)
+			{
+				Piece lastRemovedPiece = this->removedPieces.top();
+				Piece lastAddedPiece = this->addedPieces.top();
+
+				if (lastRemovedPiece.getType() == Piece::Type::PAWN && lastAddedPiece.getType() == Piece::Type::PAWN) // Check if the last moved piece is a pawn
+					if (!lastRemovedPiece.hasMoved() && lastAddedPiece.getPosition() == Position(row, column - 1)) // Check if the pawn moved 2 pieces forward
+						moves.push_back(Move(piece.getPosition(), Position(row - 1, column - 1)));
+			}
+		}
+
+		
 		if (validPosition(row - 1, column + 1))
+		{
+			// Capture black piece up-right
 			if (this->board[row - 1][column + 1].getType() != Piece::Type::NONE && this->board[row - 1][column + 1].getType() != Piece::Type::KING)
 				if (this->board[row - 1][column + 1].getColor() != piece.getColor())
-				moves.push_back(Move(piece.getPosition(), Position(row - 1, column + 1)));
+				{
+					// Check for promotion possibilty
+					if (row - 1 == 0)
+					{
+						moves.push_back(Move(piece.getPosition(), Position(row - 1, column + 1), Piece::Type::QUEEN));
+						moves.push_back(Move(piece.getPosition(), Position(row - 1, column + 1), Piece::Type::ROOK));
+						moves.push_back(Move(piece.getPosition(), Position(row - 1, column + 1), Piece::Type::BISHOP));
+						moves.push_back(Move(piece.getPosition(), Position(row - 1, column + 1), Piece::Type::KNIGHT));
+					}
+					else
+					{
+						moves.push_back(Move(piece.getPosition(), Position(row - 1, column + 1)));
+					}
+				}
 
-		// TODO Implement en passant
+			// En passant
+			if (row == 3)
+			{
+				Piece lastRemovedPiece = this->removedPieces.top();
+				Piece lastAddedPiece = this->addedPieces.top();
+
+				if (lastRemovedPiece.getType() == Piece::Type::PAWN && lastAddedPiece.getType() == Piece::Type::PAWN) // Check if the last moved piece is a pawn
+					if (!lastRemovedPiece.hasMoved() && lastAddedPiece.getPosition() == Position(row, column + 1)) // Check if the pawn moved 2 pieces forward
+						moves.push_back(Move(piece.getPosition(), Position(row - 1, column + 1)));
+			}
+		}
 	}
 	else
 	{
 		// Go one square down
 		if (validPosition(row + 1, column) && this->board[row + 1][column].getType() == Piece::Type::NONE)
 		{
-			moves.push_back(Move(piece.getPosition(), Position(row + 1, column)));
+			// Check for promotion possibilty
+			if (row + 1 == 7)
+			{
+				moves.push_back(Move(piece.getPosition(), Position(row + 1, column), Piece::Type::QUEEN));
+				moves.push_back(Move(piece.getPosition(), Position(row + 1, column), Piece::Type::ROOK));
+				moves.push_back(Move(piece.getPosition(), Position(row + 1, column), Piece::Type::BISHOP));
+				moves.push_back(Move(piece.getPosition(), Position(row + 1, column), Piece::Type::KNIGHT));
+			}
+			else
+			{
+				moves.push_back(Move(piece.getPosition(), Position(row + 1, column)));
+			}
 
 			// If on first move then go one more square down
 			if (!piece.hasMoved() && validPosition(row + 2, column) && this->board[row + 2][column].getType() == Piece::Type::NONE)
 				moves.push_back(Move(piece.getPosition(), Position(row + 2, column)));
 		}
 
-		// Capture white piece down-left
 		if (validPosition(row + 1, column - 1))
+		{
+			// Capture white piece down-left
 			if (this->board[row + 1][column - 1].getType() != Piece::Type::NONE && this->board[row + 1][column - 1].getType() != Piece::Type::KING)
 				if (this->board[row + 1][column - 1].getColor() != piece.getColor())
-				moves.push_back(Move(piece.getPosition(), Position(row + 1, column - 1)));
+				{
+					// Check for promotion possibilty
+					if (row + 1 == 7)
+					{
+						moves.push_back(Move(piece.getPosition(), Position(row + 1, column - 1), Piece::Type::QUEEN));
+						moves.push_back(Move(piece.getPosition(), Position(row + 1, column - 1), Piece::Type::ROOK));
+						moves.push_back(Move(piece.getPosition(), Position(row + 1, column - 1), Piece::Type::BISHOP));
+						moves.push_back(Move(piece.getPosition(), Position(row + 1, column - 1), Piece::Type::KNIGHT));
+					}
+					else
+					{
+						moves.push_back(Move(piece.getPosition(), Position(row + 1, column - 1)));
+					}
+				}
 
-		// Capture white piece down-right
+			// En passant
+			if (row == 4)
+			{
+				Piece lastRemovedPiece = this->removedPieces.top();
+				Piece lastAddedPiece = this->addedPieces.top();
+
+				if (lastRemovedPiece.getType() == Piece::Type::PAWN && lastAddedPiece.getType() == Piece::Type::PAWN) // Check if the last moved piece is a pawn
+					if (!lastRemovedPiece.hasMoved() && lastAddedPiece.getPosition() == Position(row, column - 1)) // Check if the pawn moved 2 pieces forward
+						moves.push_back(Move(piece.getPosition(), Position(row + 1, column - 1)));
+			}
+		}
+
 		if (validPosition(row + 1, column + 1))
+		{
+			// Capture white piece down-right
 			if (this->board[row + 1][column + 1].getType() != Piece::Type::NONE && this->board[row + 1][column + 1].getType() != Piece::Type::KING)
 				if (this->board[row + 1][column + 1].getColor() != piece.getColor())
-				moves.push_back(Move(piece.getPosition(), Position(row + 1, column + 1)));
+				{
+					// Check for promotion possibilty
+					if (row + 1 == 7)
+					{
+						moves.push_back(Move(piece.getPosition(), Position(row + 1, column + 1), Piece::Type::QUEEN));
+						moves.push_back(Move(piece.getPosition(), Position(row + 1, column + 1), Piece::Type::ROOK));
+						moves.push_back(Move(piece.getPosition(), Position(row + 1, column + 1), Piece::Type::BISHOP));
+						moves.push_back(Move(piece.getPosition(), Position(row + 1, column + 1), Piece::Type::KNIGHT));
+					}
+					else
+					{
+						moves.push_back(Move(piece.getPosition(), Position(row + 1, column + 1)));
+					}
+				}
 
-		// TODO Implement en passant
+			// En passant
+			if (row == 4)
+			{
+				Piece lastRemovedPiece = this->removedPieces.top();
+				Piece lastAddedPiece = this->addedPieces.top();
+
+				if (lastRemovedPiece.getType() == Piece::Type::PAWN && lastAddedPiece.getType() == Piece::Type::PAWN) // Check if the last moved piece is a pawn
+					if (!lastRemovedPiece.hasMoved() && lastAddedPiece.getPosition() == Position(row, column + 1)) // Check if the pawn moved 2 pieces forward
+						moves.push_back(Move(piece.getPosition(), Position(row + 1, column + 1)));
+			}
+		}
 	}
 }
 
@@ -275,19 +398,68 @@ void Board::addQueenMoves(std::vector<Move>& moves, Piece piece)
 // Add all possible moves of a given king to a container reference given as a parameter
 void Board::addKingMoves(std::vector<Move>& moves, Piece piece)
 {
-	// TODO Check if each move would put the king in check (NOT ONLY THE MOVES OF THE KING)
-	
 	int row = piece.getPosition().row();
 	int column = piece.getPosition().column();
 
 	// Check all position surrounding the king
 	for (int i = row - 1; i <= row + 1; i++)
 		for (int j = column - 1; j <= column + 1; j++)
-			if (i != row || j != row) // Check if the square we try to make the move on is not the current one
+			if (i != row || j != column) // Check if the square we try to make the move on is not the current one
 				if (this->availableSquare(piece.getColor(), i, j))
 					moves.push_back(Move(piece.getPosition(), Position(i, j)));
 
-	// TODO Implement castle
+	// Check if the king has moved
+	if (!piece.hasMoved())
+	{
+		// Get the color opposing the color of the king
+		auto otherColor = piece.getColor() == Piece::Color::WHITE ? Piece::Color::BLACK : Piece::Color::WHITE;
+		
+		// Check if the queenside rook has moved
+		Piece possibleRook = this->getPiece(Position(row, 0));
+		if (possibleRook.getType() == Piece::Type::ROOK && !possibleRook.hasMoved())
+		{
+			bool canCastle = true;
+
+			// Check if the square between the king and the rook are empty
+			for (int columnToCheck = 1; columnToCheck < column && canCastle; columnToCheck++)
+				if (this->board[row][columnToCheck].getType() != Piece::Type::NONE)
+					canCastle = false;
+
+			// Check if the squares the king would travel are attacked by the other color
+			for (int columnToCheck = column - 2; columnToCheck <= column && canCastle; columnToCheck++)
+				if (this->isAttackedBy(Position(row, columnToCheck), otherColor))
+					canCastle = false;
+					
+					
+			if (canCastle)
+			{
+				moves.push_back(Move(piece.getPosition(), Position(row, column - 2)));
+			}
+		}
+
+		// Check if the kingside rook has moved
+		possibleRook = this->getPiece(Position(row, 7));
+		if (possibleRook.getType() == Piece::Type::ROOK && !possibleRook.hasMoved())
+		{
+			bool canCastle = true;
+
+			// Check if the square between the king and the rook are empty
+			for (int columnToCheck = column + 1; columnToCheck < 7 && canCastle; columnToCheck++)
+				if (this->board[row][columnToCheck].getType() != Piece::Type::NONE)
+					canCastle = false;
+
+			// Check if the squares the king would travel are attacked by the other color
+			for (int columnToCheck = column; columnToCheck <= column + 2 && canCastle; columnToCheck++)
+				if (this->isAttackedBy(Position(row, columnToCheck), otherColor))
+					canCastle = false;
+					
+
+			if (canCastle)
+			{
+				moves.push_back(Move(piece.getPosition(), Position(row, column + 2)));
+			}
+		}
+	}
 }
 
 void Board::addPiece(const Piece piece, const bool silent)
@@ -333,188 +505,236 @@ void Board::removePiece(const Piece piece, const bool silent)
 	this->occupiedSquares[colorIndex].erase(position);
 }
 
-bool Board::isInCheck(const Piece::Color color)
+bool Board::isAttackedBy(Position position, const Piece::Color attackingColor)
 {
-	Position kingPosition;
-
-	if (color == Piece::Color::WHITE)
+	if (attackingColor == Piece::Color::BLACK)
 	{
-		// Get the position of the white king
-		kingPosition = this->whiteKingPosition;
-
 		// Check for a pawn in the up-left direction
-		if (validPosition(kingPosition.UpLeft()) && this->getPiece(kingPosition.UpLeft()).getType() == Piece::Type::PAWN && this->getPiece(kingPosition.UpLeft()).getColor() != color)
+		if (validPosition(position.UpLeft()) && this->getPiece(position.UpLeft()).getType() == Piece::Type::PAWN && this->getPiece(position.UpLeft()).getColor() == attackingColor)
 			return true;
-		
+
 		// Check for a pawn in the up-right direction
-		if (validPosition(kingPosition.UpRight()) && this->getPiece(kingPosition.UpRight()).getType() == Piece::Type::PAWN && this->getPiece(kingPosition.UpRight()).getColor() != color)
+		if (validPosition(position.UpRight()) && this->getPiece(position.UpRight()).getType() == Piece::Type::PAWN && this->getPiece(position.UpRight()).getColor() == attackingColor)
 			return true;
 	}
 	else
 	{
-		// Get the position of the black king
-		kingPosition = this->blackKingPosition;
-
 		// Check for a pawn in the down-left direction
-		if (validPosition(kingPosition.DownLeft()) && this->getPiece(kingPosition.DownLeft()).getType() == Piece::Type::PAWN && this->getPiece(kingPosition.DownLeft()).getColor() != color)
+		if (validPosition(position.DownLeft()) && this->getPiece(position.DownLeft()).getType() == Piece::Type::PAWN && this->getPiece(position.DownLeft()).getColor() == attackingColor)
 			return true;
 
 		// Check for a pawn in the down-right direction
-		if (validPosition(kingPosition.DownRight()) && this->getPiece(kingPosition.DownRight()).getType() == Piece::Type::PAWN && this->getPiece(kingPosition.DownRight()).getColor() != color)
+		if (validPosition(position.DownRight()) && this->getPiece(position.DownRight()).getType() == Piece::Type::PAWN && this->getPiece(position.DownRight()).getColor() == attackingColor)
 			return true;
 	}
 
 	Position positionToCheck;
 
 	// Check in the up direction
-	positionToCheck = kingPosition.Up();
+	positionToCheck = position.Up();
 	while (validPosition(positionToCheck))
 	{
 		Piece::Type pieceType = this->getPiece(positionToCheck).getType();
 		Piece::Color pieceColor = this->getPiece(positionToCheck).getColor();
-		
-		// If the first piece we encounter is of the same color then the king can't be checked from this direction
-		if (pieceColor == color)
-			break;
 
-		// If the first piece we encounter is a rook or queen of the other color then the king is in check
-		if (pieceColor != color && (pieceType == Piece::Type::ROOK || pieceType == Piece::Type::QUEEN))
-			return true;
+		// The first piece we encounter
+		if (pieceType != Piece::Type::NONE)
+		{
+			// If the piece is not of the attacking color then the position can not be attacked from this direction
+			if (pieceColor != attackingColor)
+				break;
+
+			// If the first piece we encounter is a rook or queen of attacking color then the position is attacked
+			if (pieceType == Piece::Type::ROOK || pieceType == Piece::Type::QUEEN)
+				return true;
+			
+			// If the piece is not a rook or a queen then the position can not be attacked from this direction
+			break;
+		}
 
 		positionToCheck = positionToCheck.Up();
 	}
 
 	// Check in the down direction
-	positionToCheck = kingPosition.Down();
+	positionToCheck = position.Down();
 	while (validPosition(positionToCheck))
 	{
 		Piece::Type pieceType = this->getPiece(positionToCheck).getType();
 		Piece::Color pieceColor = this->getPiece(positionToCheck).getColor();
 
-		// If the first piece we encounter is of the same color then the king can't be checked from this direction
-		if (pieceColor == color)
-			break;
+		// The first piece we encounter
+		if (pieceType != Piece::Type::NONE)
+		{
+			// If the piece is not of the attacking color then the position can not be attacked from this direction
+			if (pieceColor != attackingColor)
+				break;
 
-		// If the first piece we encounter is a rook or queen of the other color then the king is in check
-		if (pieceColor != color && (pieceType == Piece::Type::ROOK || pieceType == Piece::Type::QUEEN))
-			return true;
+			// If the first piece we encounter is a rook or queen of attacking color then the position is attacked
+			if (pieceType == Piece::Type::ROOK || pieceType == Piece::Type::QUEEN)
+				return true;
+
+			// If the piece is not a rook or a queen then the position can not be attacked from this direction
+			break;
+		}
 
 		positionToCheck = positionToCheck.Down();
 	}
 
 	// Check in the left direction
-	positionToCheck = kingPosition.Left();
+	positionToCheck = position.Left();
 	while (validPosition(positionToCheck))
 	{
 		Piece::Type pieceType = this->getPiece(positionToCheck).getType();
 		Piece::Color pieceColor = this->getPiece(positionToCheck).getColor();
 
-		// If the first piece we encounter is of the same color then the king can't be checked from this direction
-		if (pieceColor == color)
-			break;
+		// The first piece we encounter
+		if (pieceType != Piece::Type::NONE)
+		{
+			// If the piece is not of the attacking color then the position can not be attacked from this direction
+			if (pieceColor != attackingColor)
+				break;
 
-		// If the first piece we encounter is a rook or queen of the other color then the king is in check
-		if (pieceColor != color && (pieceType == Piece::Type::ROOK || pieceType == Piece::Type::QUEEN))
-			return true;
+			// If the first piece we encounter is a rook or queen of attacking color then the position is attacked
+			if (pieceType == Piece::Type::ROOK || pieceType == Piece::Type::QUEEN)
+				return true;
+
+			// If the piece is not a rook or a queen then the position can not be attacked from this direction
+			break;
+		}
 
 		positionToCheck = positionToCheck.Left();
 	}
 
 	// Check in the right direction
-	positionToCheck = kingPosition.Right();
+	positionToCheck = position.Right();
 	while (validPosition(positionToCheck))
 	{
 		Piece::Type pieceType = this->getPiece(positionToCheck).getType();
 		Piece::Color pieceColor = this->getPiece(positionToCheck).getColor();
 
-		// If the first piece we encounter is of the same color then the king can't be checked from this direction
-		if (pieceColor == color)
-			break;
+		// The first piece we encounter
+		if (pieceType != Piece::Type::NONE)
+		{
+			// If the piece is not of the attacking color then the position can not be attacked from this direction
+			if (pieceColor != attackingColor)
+				break;
 
-		// If the first piece we encounter is a rook or queen of the other color then the king is in check
-		if (pieceColor != color && (pieceType == Piece::Type::ROOK || pieceType == Piece::Type::QUEEN))
-			return true;
+			// If the first piece we encounter is a rook or queen of attacking color then the position is attacked
+			if (pieceType == Piece::Type::ROOK || pieceType == Piece::Type::QUEEN)
+				return true;
+
+			// If the piece is not a rook or a queen then the position can not be attacked from this direction
+			break;
+		}
 
 		positionToCheck = positionToCheck.Right();
 	}
 
 	// Check in the up-left direction
-	positionToCheck = kingPosition.UpLeft();
+	positionToCheck = position.UpLeft();
 	while (validPosition(positionToCheck))
 	{
 		Piece::Type pieceType = this->getPiece(positionToCheck).getType();
 		Piece::Color pieceColor = this->getPiece(positionToCheck).getColor();
 
-		// If the first piece we encounter is of the same color then the king can't be checked from this direction
-		if (pieceColor == color)
-			break;
+		// The first piece we encounter
+		if (pieceType != Piece::Type::NONE)
+		{
+			// If the piece is not of the attacking color then the position can not be attacked from this direction
+			if (pieceColor != attackingColor)
+				break;
 
-		// If the first piece we encounter is a rook or queen of the other color then the king is in check
-		if (pieceColor != color && (pieceType == Piece::Type::BISHOP || pieceType == Piece::Type::QUEEN))
-			return true;
+			// If the first piece we encounter is a bishop or queen of attacking color then the position is attacked
+			if (pieceType == Piece::Type::BISHOP || pieceType == Piece::Type::QUEEN)
+				return true;
+
+			// If the piece is not a bishop or a queen then the position can not be attacked from this direction
+			break;
+		}
 
 		positionToCheck = positionToCheck.UpLeft();
 	}
 
 	// Check in the up-right direction
-	positionToCheck = kingPosition.UpRight();
+	positionToCheck = position.UpRight();
 	while (validPosition(positionToCheck))
 	{
 		Piece::Type pieceType = this->getPiece(positionToCheck).getType();
 		Piece::Color pieceColor = this->getPiece(positionToCheck).getColor();
 
-		// If the first piece we encounter is of the same color then the king can't be checked from this direction
-		if (pieceColor == color)
-			break;
+		// The first piece we encounter
+		if (pieceType != Piece::Type::NONE)
+		{
+			// If the piece is not of the attacking color then the position can not be attacked from this direction
+			if (pieceColor != attackingColor)
+				break;
 
-		// If the first piece we encounter is a rook or queen of the other color then the king is in check
-		if (pieceColor != color && (pieceType == Piece::Type::BISHOP || pieceType == Piece::Type::QUEEN))
-			return true;
+			// If the first piece we encounter is a bishop or queen of attacking color then the position is attacked
+			if (pieceType == Piece::Type::BISHOP || pieceType == Piece::Type::QUEEN)
+				return true;
+
+			// If the piece is not a bishop or a queen then the position can not be attacked from this direction
+			break;
+		}
 
 		positionToCheck = positionToCheck.UpRight();
 	}
 
 	// Check in the down-left direction
-	positionToCheck = kingPosition.DownLeft();
+	positionToCheck = position.DownLeft();
 	while (validPosition(positionToCheck))
 	{
 		Piece::Type pieceType = this->getPiece(positionToCheck).getType();
 		Piece::Color pieceColor = this->getPiece(positionToCheck).getColor();
 
-		// If the first piece we encounter is of the same color then the king can't be checked from this direction
-		if (pieceColor == color)
-			break;
+		// The first piece we encounter
+		if (pieceType != Piece::Type::NONE)
+		{
+			// If the piece is not of the attacking color then the position can not be attacked from this direction
+			if (pieceColor != attackingColor)
+				break;
 
-		// If the first piece we encounter is a rook or queen of the other color then the king is in check
-		if (pieceColor != color && (pieceType == Piece::Type::BISHOP || pieceType == Piece::Type::QUEEN))
-			return true;
+			// If the first piece we encounter is a bishop or queen of attacking color then the position is attacked
+			if (pieceType == Piece::Type::BISHOP || pieceType == Piece::Type::QUEEN)
+				return true;
+
+			// If the piece is not a bishop or a queen then the position can not be attacked from this direction
+			break;
+		}
 
 		positionToCheck = positionToCheck.DownLeft();
 	}
 
 	// Check in the down-right direction
-	positionToCheck = kingPosition.DownRight();
+	positionToCheck = position.DownRight();
 	while (validPosition(positionToCheck))
 	{
 		Piece::Type pieceType = this->getPiece(positionToCheck).getType();
 		Piece::Color pieceColor = this->getPiece(positionToCheck).getColor();
 
-		// If the first piece we encounter is of the same color then the king can't be checked from this direction
-		if (pieceColor == color)
-			break;
+		// The first piece we encounter
+		if (pieceType != Piece::Type::NONE)
+		{
+			// If the piece is not of the attacking color then the position can not be attacked from this direction
+			if (pieceColor != attackingColor)
+				break;
 
-		// If the first piece we encounter is a rook or queen of the other color then the king is in check
-		if (pieceColor != color && (pieceType == Piece::Type::BISHOP || pieceType == Piece::Type::QUEEN))
-			return true;
+			// If the first piece we encounter is a bishop or queen of attacking color then the position is attacked
+			if (pieceType == Piece::Type::BISHOP || pieceType == Piece::Type::QUEEN)
+				return true;
+
+			// If the piece is not a bishop or a queen then the position can not be attacked from this direction
+			break;
+		}
 
 		positionToCheck = positionToCheck.DownRight();
 	}
 
 	// Check for knights
-	int row = kingPosition.row();
-	int column = kingPosition.column();
+	int row = position.row();
+	int column = position.column();
 
-	// All possible positions from which a knigt can check the king
+	// All possible positions from which a knight can attack the piece
 	Piece pieces[8] =
 	{
 		validPosition(row - 1, column - 2) ? this->board[row - 1][column - 2] : Piece(),
@@ -526,13 +746,30 @@ bool Board::isInCheck(const Piece::Color color)
 		validPosition(row + 2, column + 1) ? this->board[row + 2][column + 1] : Piece(),
 		validPosition(row + 1, column + 2) ? this->board[row + 1][column + 2] : Piece()
 	};
-	
-	// Check if there is a knight of the other color on each of the possible positions
+
+	// Check if there is a knight of the attacking color on each of the possible positions
 	for (int i = 0; i < 8; i++)
-		if (pieces[i].getType() == Piece::KNIGHT && pieces[i].getColor() != color)
+		if (pieces[i].getType() == Piece::KNIGHT && pieces[i].getColor() == attackingColor)
 			return true;
 
+	// Check for kings
+	row = position.row();
+	column = position.column();
+
+	for (int i = row - 1; i <= row + 1; i++)
+		for (int j = column - 1; j <= column + 1; j++)
+			if ((i != row || j != column) && validPosition(i, j))
+				if (this->board[i][j].getType() == Piece::Type::KING && this->board[i][j].getColor() == attackingColor)
+					return true;
+
 	return false;
+}
+
+bool Board::isInCheck(const Piece::Color color)
+{
+	if (color == Piece::Color::WHITE)
+		return this->isAttackedBy(this->whiteKingPosition, Piece::Color::BLACK);
+	return this->isAttackedBy(this->blackKingPosition, Piece::Color::WHITE);
 }
 
 bool Board::checkmate(const Piece::Color color)
@@ -608,10 +845,113 @@ std::vector<Move> Board::getMoves(const Piece::Color playerColor)
 	return moves;
 }
 
+void Board::castle(Move move)
+{
+	Position kingInitialPosition = move.getInitialPosition();
+	Position kingTargetPosition = move.getTargetPosition();
+	Piece king = this->getPiece(kingInitialPosition);
+	
+	Position rookTargetPosition;
+	Piece rook;
+
+	// Get rook information
+	if (king.getColor() == Piece::Color::WHITE) // White king castles
+	{
+		if (kingTargetPosition == Position(7, 6)) // Kingside
+		{
+			rookTargetPosition = Position(7, 5);
+			rook = this->getPiece(Position(7, 7));
+		}
+		else // Queenside
+		{
+			rookTargetPosition = Position(7, 3);
+			rook = this->getPiece(Position(7, 0));
+		}
+	}
+	else // Black king castles
+	{
+		if (kingTargetPosition == Position(0, 6)) // Kingside
+		{
+			rookTargetPosition = Position(0, 5);
+			rook = this->getPiece(Position(0, 7));
+		}
+		else // Queenside
+		{
+			rookTargetPosition = Position(0, 3);
+			rook = this->getPiece(Position(0, 0));
+		}
+	}
+
+	// Remove the king from his position
+	this->removePiece(king);
+
+	// Create a new king piece at the target position with hasMoved = true
+	Piece movedKing = Piece(king.getType(), king.getColor(), kingTargetPosition, true);
+	this->addPiece(movedKing);
+
+	// Remove the rook from his position
+	this->removePiece(rook);
+
+	// Create a new rook piece at the target position with hasMoved = true
+	Piece movedRook = Piece(rook.getType(), rook.getColor(), rookTargetPosition, true);
+	this->addPiece(movedRook);
+
+	// Add a separator at the end of the move
+	this->actionsMade.push(Action::SEPARATOR);
+}
+
+void Board::enPassant(Move move)
+{
+	Position initialPosition = move.getInitialPosition();
+	Position targetPosition = move.getTargetPosition();
+	Piece pawn = this->getPiece(initialPosition);
+
+	// Remove the captured pawn below targetPosition
+	Position positionToCapture = (pawn.getColor() == Piece::Color::WHITE) ? targetPosition.Down() : targetPosition.Up();
+	this->removePiece(this->getPiece(positionToCapture));
+
+	// Remove the pawn from its initial position
+	this->removePiece(pawn);
+
+	// Create a new pawn piece at the target position with hasMoved = true
+	Piece movedPawn = Piece(pawn.getType(), pawn.getColor(), targetPosition, true);
+	this->addPiece(movedPawn);
+
+	this->actionsMade.push(Action::SEPARATOR);
+}
+
 void Board::makeMove(Move move)
 {
 	Position initialPosition = move.getInitialPosition();
 	Position targetPosition = move.getTargetPosition();
+
+	// Check if the move is a castle
+	if (initialPosition == this->whiteKingPosition && !this->getPiece(initialPosition).hasMoved())
+	{
+		if (targetPosition == Position(7, 6) || targetPosition == Position(7, 2))
+		{
+			this->castle(move);
+			return;
+		}
+	}
+	else if (initialPosition == this->blackKingPosition && !this->getPiece(initialPosition).hasMoved())
+	{
+		if (targetPosition == Position(0, 6) || targetPosition == Position(0, 2))
+		{
+			this->castle(move);
+			return;
+		}
+	}
+
+	// Check if the move is an en passant move
+	if (this->getPiece(initialPosition).getType() == Piece::Type::PAWN && this->getPiece(targetPosition).getType() == Piece::Type::NONE)
+	{
+		if (targetPosition.column() != initialPosition.column()) // Check if the pawn moves diagonally
+		{
+			this->enPassant(move);
+			return;
+		}
+	}
 
 	Piece pieceToMove = this->board[initialPosition.row()][initialPosition.column()];
 	Piece pieceToGetCaptured = this->board[targetPosition.row()][targetPosition.column()];
@@ -627,6 +967,8 @@ void Board::makeMove(Move move)
 
 	// Add the piece to move to the target square
 	Piece movedPiece = Piece(pieceToMove.getType(), pieceToMove.getColor(), targetPosition, true); // Get a new piece with correct position and hasMoved
+	if (move.getPromotionType() != Piece::Type::NONE && pieceToMove.getType() == Piece::Type::PAWN) // Check if the move is a pawn promotion
+		movedPiece.setType(move.getPromotionType());
 	this->addPiece(movedPiece);
 
 	// Add a separator to the stack to mark the end of the move
@@ -717,7 +1059,7 @@ Board::minimaxResult Board::minimax(int depth, int alpha, int beta, bool whiteTo
 {
 	// Check if the game is over
 	if (this->checkmate(whiteToMove ? Piece::Color::WHITE : Piece::Color::BLACK))
-		return whiteToMove ? Board::minimaxResult(Move(), INT_MIN) : Board::minimaxResult(Move(), INT_MAX);
+		return whiteToMove ? Board::minimaxResult(Move(), INT_MIN + 1) : Board::minimaxResult(Move(), INT_MAX - 1);
 
 	if (depth == 0)
 		return Board::minimaxResult(Move(), this->evaluate());
@@ -817,6 +1159,24 @@ std::string Board::toString()
 				boardString += "O";
 				break;
 			}
+
+		boardString += "\n";
+	}
+
+	return boardString;
+}
+
+std::string Board::attackedSquaresToString(const Piece::Color color)
+{
+	std::string boardString;
+
+	for (int i = 0; i < 8; i++)
+	{
+		for (int j = 0; j < 8; j++)
+			if (this->isAttackedBy(Position(i, j), color))
+				boardString += "X";
+			else
+				boardString += "O";
 
 		boardString += "\n";
 	}
