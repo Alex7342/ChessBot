@@ -85,6 +85,7 @@ public:
 	void undoMove();
 
 	std::string toString();
+	std::string attackedSquaresToString(const Piece::Color color);
 };
 
 const int pieceValue[7] =

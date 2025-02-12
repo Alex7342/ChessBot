@@ -1166,4 +1166,22 @@ std::string Board::toString()
 	return boardString;
 }
 
+std::string Board::attackedSquaresToString(const Piece::Color color)
+{
+	std::string boardString;
+
+	for (int i = 0; i < 8; i++)
+	{
+		for (int j = 0; j < 8; j++)
+			if (this->isAttackedBy(Position(i, j), color))
+				boardString += "X";
+			else
+				boardString += "O";
+
+		boardString += "\n";
+	}
+
+	return boardString;
+}
+
 Board::minimaxResult::minimaxResult(const Move move, const int value) : move(move), value(value) {}
