@@ -13,15 +13,22 @@ private:
 	Piece::Type promotionType;
 
 public:
+	// Construct an empty move
 	Move();
+	// Construct a move given an initial position, a target position and a promotion type in case of pawn promotion
 	Move(const Position initialPosition, const Position targetPosition, const Piece::Type promotionType = Piece::Type::NONE);
 	
-	Position getInitialPosition();
-	Position getTargetPosition();
-
-	Piece::Type getPromotionType();
+	// Get the position from which the piece moves
+	Position getInitialPosition() const;
+	// Get the position the piece is moving to
+	Position getTargetPosition() const;
+	
+	// Get the type of piece the pawn is promoting to
+	Piece::Type getPromotionType() const;
+	// Set the type of piece the pawn is promoting to
 	void setPromotionType(const Piece::Type newPromotionType);
 
+	// Compute a string to describe the current move
 	std::string toString() const;
 };
 
