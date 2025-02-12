@@ -537,13 +537,20 @@ bool Board::isAttackedBy(Position position, const Piece::Color attackingColor)
 		Piece::Type pieceType = this->getPiece(positionToCheck).getType();
 		Piece::Color pieceColor = this->getPiece(positionToCheck).getColor();
 
-		// If the first piece we encounter is not of the attacking color then the piece can't be attacked from this direction
-		if (pieceType != Piece::Type::NONE && pieceColor != attackingColor)
-			break;
+		// The first piece we encounter
+		if (pieceType != Piece::Type::NONE)
+		{
+			// If the piece is not of the attacking color then the position can not be attacked from this direction
+			if (pieceColor != attackingColor)
+				break;
 
-		// If the first piece we encounter is a rook or queen of attacking color then the piece is attacked
-		if (pieceColor == attackingColor && (pieceType == Piece::Type::ROOK || pieceType == Piece::Type::QUEEN))
-			return true;
+			// If the first piece we encounter is a rook or queen of attacking color then the position is attacked
+			if (pieceType == Piece::Type::ROOK || pieceType == Piece::Type::QUEEN)
+				return true;
+			
+			// If the piece is not a rook or a queen then the position can not be attacked from this direction
+			break;
+		}
 
 		positionToCheck = positionToCheck.Up();
 	}
@@ -555,13 +562,20 @@ bool Board::isAttackedBy(Position position, const Piece::Color attackingColor)
 		Piece::Type pieceType = this->getPiece(positionToCheck).getType();
 		Piece::Color pieceColor = this->getPiece(positionToCheck).getColor();
 
-		// If the first piece we encounter is not of the attacking color then the piece can't be attacked from this direction
-		if (pieceType != Piece::Type::NONE && pieceColor != attackingColor)
-			break;
+		// The first piece we encounter
+		if (pieceType != Piece::Type::NONE)
+		{
+			// If the piece is not of the attacking color then the position can not be attacked from this direction
+			if (pieceColor != attackingColor)
+				break;
 
-		// If the first piece we encounter is a rook or queen of attacking color then the piece is attacked
-		if (pieceColor == attackingColor && (pieceType == Piece::Type::ROOK || pieceType == Piece::Type::QUEEN))
-			return true;
+			// If the first piece we encounter is a rook or queen of attacking color then the position is attacked
+			if (pieceType == Piece::Type::ROOK || pieceType == Piece::Type::QUEEN)
+				return true;
+
+			// If the piece is not a rook or a queen then the position can not be attacked from this direction
+			break;
+		}
 
 		positionToCheck = positionToCheck.Down();
 	}
@@ -573,13 +587,20 @@ bool Board::isAttackedBy(Position position, const Piece::Color attackingColor)
 		Piece::Type pieceType = this->getPiece(positionToCheck).getType();
 		Piece::Color pieceColor = this->getPiece(positionToCheck).getColor();
 
-		// If the first piece we encounter is not of the attacking color then the piece can't be attacked from this direction
-		if (pieceType != Piece::Type::NONE && pieceColor != attackingColor)
-			break;
+		// The first piece we encounter
+		if (pieceType != Piece::Type::NONE)
+		{
+			// If the piece is not of the attacking color then the position can not be attacked from this direction
+			if (pieceColor != attackingColor)
+				break;
 
-		// If the first piece we encounter is a rook or queen of attacking color then the piece is attacked
-		if (pieceColor == attackingColor && (pieceType == Piece::Type::ROOK || pieceType == Piece::Type::QUEEN))
-			return true;
+			// If the first piece we encounter is a rook or queen of attacking color then the position is attacked
+			if (pieceType == Piece::Type::ROOK || pieceType == Piece::Type::QUEEN)
+				return true;
+
+			// If the piece is not a rook or a queen then the position can not be attacked from this direction
+			break;
+		}
 
 		positionToCheck = positionToCheck.Left();
 	}
@@ -591,13 +612,20 @@ bool Board::isAttackedBy(Position position, const Piece::Color attackingColor)
 		Piece::Type pieceType = this->getPiece(positionToCheck).getType();
 		Piece::Color pieceColor = this->getPiece(positionToCheck).getColor();
 
-		// If the first piece we encounter is not of the attacking color then the piece can't be attacked from this direction
-		if (pieceType != Piece::Type::NONE && pieceColor != attackingColor)
-			break;
+		// The first piece we encounter
+		if (pieceType != Piece::Type::NONE)
+		{
+			// If the piece is not of the attacking color then the position can not be attacked from this direction
+			if (pieceColor != attackingColor)
+				break;
 
-		// If the first piece we encounter is a rook or queen of attacking color then the piece is attacked
-		if (pieceColor == attackingColor && (pieceType == Piece::Type::ROOK || pieceType == Piece::Type::QUEEN))
-			return true;
+			// If the first piece we encounter is a rook or queen of attacking color then the position is attacked
+			if (pieceType == Piece::Type::ROOK || pieceType == Piece::Type::QUEEN)
+				return true;
+
+			// If the piece is not a rook or a queen then the position can not be attacked from this direction
+			break;
+		}
 
 		positionToCheck = positionToCheck.Right();
 	}
@@ -609,13 +637,20 @@ bool Board::isAttackedBy(Position position, const Piece::Color attackingColor)
 		Piece::Type pieceType = this->getPiece(positionToCheck).getType();
 		Piece::Color pieceColor = this->getPiece(positionToCheck).getColor();
 
-		// If the first piece we encounter is not of the attacking color then the piece can't be attacked from this direction
-		if (pieceType != Piece::Type::NONE && pieceColor != attackingColor)
-			break;
+		// The first piece we encounter
+		if (pieceType != Piece::Type::NONE)
+		{
+			// If the piece is not of the attacking color then the position can not be attacked from this direction
+			if (pieceColor != attackingColor)
+				break;
 
-		// If the first piece we encounter is a bishop or queen of attacking color then the piece is attacked
-		if (pieceColor == attackingColor && (pieceType == Piece::Type::BISHOP || pieceType == Piece::Type::QUEEN))
-			return true;
+			// If the first piece we encounter is a bishop or queen of attacking color then the position is attacked
+			if (pieceType == Piece::Type::BISHOP || pieceType == Piece::Type::QUEEN)
+				return true;
+
+			// If the piece is not a bishop or a queen then the position can not be attacked from this direction
+			break;
+		}
 
 		positionToCheck = positionToCheck.UpLeft();
 	}
@@ -627,13 +662,20 @@ bool Board::isAttackedBy(Position position, const Piece::Color attackingColor)
 		Piece::Type pieceType = this->getPiece(positionToCheck).getType();
 		Piece::Color pieceColor = this->getPiece(positionToCheck).getColor();
 
-		// If the first piece we encounter is not of the attacking color then the piece can't be attacked from this direction
-		if (pieceType != Piece::Type::NONE && pieceColor != attackingColor)
-			break;
+		// The first piece we encounter
+		if (pieceType != Piece::Type::NONE)
+		{
+			// If the piece is not of the attacking color then the position can not be attacked from this direction
+			if (pieceColor != attackingColor)
+				break;
 
-		// If the first piece we encounter is a bishop or queen of attacking color then the piece is attacked
-		if (pieceColor == attackingColor && (pieceType == Piece::Type::BISHOP || pieceType == Piece::Type::QUEEN))
-			return true;
+			// If the first piece we encounter is a bishop or queen of attacking color then the position is attacked
+			if (pieceType == Piece::Type::BISHOP || pieceType == Piece::Type::QUEEN)
+				return true;
+
+			// If the piece is not a bishop or a queen then the position can not be attacked from this direction
+			break;
+		}
 
 		positionToCheck = positionToCheck.UpRight();
 	}
@@ -645,13 +687,20 @@ bool Board::isAttackedBy(Position position, const Piece::Color attackingColor)
 		Piece::Type pieceType = this->getPiece(positionToCheck).getType();
 		Piece::Color pieceColor = this->getPiece(positionToCheck).getColor();
 
-		// If the first piece we encounter is not of the attacking color then the piece can't be attacked from this direction
-		if (pieceType != Piece::Type::NONE && pieceColor != attackingColor)
-			break;
+		// The first piece we encounter
+		if (pieceType != Piece::Type::NONE)
+		{
+			// If the piece is not of the attacking color then the position can not be attacked from this direction
+			if (pieceColor != attackingColor)
+				break;
 
-		// If the first piece we encounter is a bishop or queen of attacking color then the piece is attacked
-		if (pieceColor == attackingColor && (pieceType == Piece::Type::BISHOP || pieceType == Piece::Type::QUEEN))
-			return true;
+			// If the first piece we encounter is a bishop or queen of attacking color then the position is attacked
+			if (pieceType == Piece::Type::BISHOP || pieceType == Piece::Type::QUEEN)
+				return true;
+
+			// If the piece is not a bishop or a queen then the position can not be attacked from this direction
+			break;
+		}
 
 		positionToCheck = positionToCheck.DownLeft();
 	}
@@ -663,13 +712,20 @@ bool Board::isAttackedBy(Position position, const Piece::Color attackingColor)
 		Piece::Type pieceType = this->getPiece(positionToCheck).getType();
 		Piece::Color pieceColor = this->getPiece(positionToCheck).getColor();
 
-		// If the first piece we encounter is not of the attacking color then the piece can't be attacked from this direction
-		if (pieceType != Piece::Type::NONE && pieceColor != attackingColor)
-			break;
+		// The first piece we encounter
+		if (pieceType != Piece::Type::NONE)
+		{
+			// If the piece is not of the attacking color then the position can not be attacked from this direction
+			if (pieceColor != attackingColor)
+				break;
 
-		// If the first piece we encounter is a bishop or queen of attacking color then the piece is attacked
-		if (pieceColor == attackingColor && (pieceType == Piece::Type::BISHOP || pieceType == Piece::Type::QUEEN))
-			return true;
+			// If the first piece we encounter is a bishop or queen of attacking color then the position is attacked
+			if (pieceType == Piece::Type::BISHOP || pieceType == Piece::Type::QUEEN)
+				return true;
+
+			// If the piece is not a bishop or a queen then the position can not be attacked from this direction
+			break;
+		}
 
 		positionToCheck = positionToCheck.DownRight();
 	}
@@ -702,7 +758,7 @@ bool Board::isAttackedBy(Position position, const Piece::Color attackingColor)
 
 	for (int i = row - 1; i <= row + 1; i++)
 		for (int j = column - 1; j <= column + 1; j++)
-			if (i != row || j != column && validPosition(i, j))
+			if ((i != row || j != column) && validPosition(i, j))
 				if (this->board[i][j].getType() == Piece::Type::KING && this->board[i][j].getColor() == attackingColor)
 					return true;
 
