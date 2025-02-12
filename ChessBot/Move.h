@@ -16,10 +16,10 @@ public:
 	Move();
 	Move(const Position initialPosition, const Position targetPosition, const Piece::Type promotionType = Piece::Type::NONE);
 	
-	Position getInitialPosition();
-	Position getTargetPosition();
+	Position getInitialPosition() const;
+	Position getTargetPosition() const;
 
-	Piece::Type getPromotionType();
+	Piece::Type getPromotionType() const;
 	void setPromotionType(const Piece::Type newPromotionType);
 
 	std::string toString() const;
