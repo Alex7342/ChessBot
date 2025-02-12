@@ -1,6 +1,6 @@
 #include "Move.h"
 
-Move::Move() : initialPosition(Position()), targetPosition(Position()) {}
+Move::Move() : initialPosition(Position()), targetPosition(Position()), promotionType(Piece::Type::NONE) {}
 
 Move::Move(const Position initialPosition, const Position targetPosition, const Piece::Type promotionType) : initialPosition(initialPosition), targetPosition(targetPosition), promotionType(promotionType) {}
 
