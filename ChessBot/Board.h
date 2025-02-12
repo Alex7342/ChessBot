@@ -12,11 +12,15 @@ private:
 	class minimaxResult
 	{
 	public:
+		// The move returned by the minimax algorithm
 		Move move;
+		// The evaluation value return by the minimax algorithm
 		int value;
+		// Construct a minimax result given a move and an evaluation value
 		minimaxResult(const Move move, const int value);
 	};
 
+	// Enum for all possible actions performed on the board
 	enum Action
 	{
 		SEPARATOR = 0,
@@ -24,6 +28,7 @@ private:
 		ADD_PIECE = 2,
 	};
 
+	// Array that represents the current state of the board
 	Piece board[8][8];
 
 	// Two sets that contain the occupied squares of each color (index 0 for white, index 1 for black)
@@ -102,6 +107,7 @@ private:
 	minimaxResult minimax(int depth, int alpha, int beta, const bool whiteToMove);
 
 public:
+	// Construct a board with the default chess setup
 	Board();
 
 	// Returns the piece at the given position
@@ -140,6 +146,7 @@ const int pieceValue[7] =
 	20000   // King
 };
 
+// Table describing positional value of each piece type
 const int positionValue[8][8][8] =
 {
 	// Empty square value table (index 0)
