@@ -12,14 +12,14 @@ public:
 	int row() const;
 	int column() const;
 	
-	Position Up();
-	Position Down();
-	Position Left();
-	Position Right();
-	Position UpLeft();
-	Position UpRight();
-	Position DownLeft();
-	Position DownRight();
+	Position Up() const;
+	Position Down() const;
+	Position Left() const;
+	Position Right() const;
+	Position UpLeft() const;
+	Position UpRight() const;
+	Position DownLeft() const;
+	Position DownRight() const;
 
 	void GoTowards(const int rowChange, const int columnChange);
 

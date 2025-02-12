@@ -14,42 +14,42 @@ int Position::column() const
     return this->_column;
 }
 
-Position Position::Up()
+Position Position::Up() const
 {
     return Position(this->_row - 1, this->_column);
 }
 
-Position Position::Down()
+Position Position::Down() const
 {
     return Position(this->_row + 1, this->_column);
 }
 
-Position Position::Left()
+Position Position::Left() const
 {
     return Position(this->_row, this->_column - 1);
 }
 
-Position Position::Right()
+Position Position::Right() const
 {
     return Position(this->_row, this->_column + 1);
 }
 
-Position Position::UpLeft()
+Position Position::UpLeft() const
 {
     return Position(this->_row - 1, this->_column - 1);
 }
 
-Position Position::UpRight()
+Position Position::UpRight() const
 {
     return Position(this->_row - 1, this->_column + 1);
 }
 
-Position Position::DownLeft()
+Position Position::DownLeft() const
 {
     return Position(this->_row + 1, this->_column - 1);
 }
 
-Position Position::DownRight()
+Position Position::DownRight() const
 {
     return Position(this->_row + 1, this->_column + 1);
 }
