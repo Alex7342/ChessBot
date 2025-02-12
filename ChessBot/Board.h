@@ -106,6 +106,9 @@ private:
 
 	// Value used for board evaluation
 	int evaluation;
+	
+	// The move found by the minimax algorithm using the previous depth (used for iterative deepening)
+	Move bestMoveForPreviousDepth;
 
 	// The depth of the move search
 	static const int searchDepth = 5;

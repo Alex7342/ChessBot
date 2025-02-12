@@ -957,6 +957,14 @@ void Board::enPassant(const Move move)
 
 bool Board::compareMoves(const Move& firstMove, const Move& secondMove) const
 {
+	// Check if the first move is the best one from the previous depth
+	if (firstMove == this->bestMoveForPreviousDepth)
+		return true;
+
+	// Check if the second move is the best one from the previous depth
+	if (secondMove == this->bestMoveForPreviousDepth)
+		return false;
+
 	Position firstTargetPosition = firstMove.getTargetPosition();
 	Position secondTargetPosition = secondMove.getTargetPosition();
 
@@ -1104,7 +1112,16 @@ int Board::evaluate() const
 
 Move Board::getBestMove(const Piece::Color playerToMove)
 {
-	return this->minimax(searchDepth, INT_MIN, INT_MAX, playerToMove == Piece::Color::WHITE).move;
+	Move result;
+	this->bestMoveForPreviousDepth = Move();
+
+	for (int depth = 1; depth <= searchDepth; depth++)
+	{
+		result = this->minimax(searchDepth, INT_MIN, INT_MAX, playerToMove == Piece::Color::WHITE).move;
+		this->bestMoveForPreviousDepth = result;
+	}
+
+	return result;
 }
 
 Board::minimaxResult Board::minimax(int depth, int alpha, int beta, const bool whiteToMove)
