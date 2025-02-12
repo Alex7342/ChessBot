@@ -24,6 +24,11 @@ void Move::setPromotionType(const Piece::Type newPromotionType)
 	this->promotionType = newPromotionType;
 }
 
+bool Move::operator==(const Move& other) const
+{
+	return this->initialPosition == other.initialPosition && this->targetPosition == other.targetPosition && this->promotionType == other.promotionType;
+}
+
 std::string Move::toString() const
 {
 	std::string moveString = "(" + std::to_string(this->initialPosition.row()) + ", " + std::to_string(this->initialPosition.column()) + ") -> " +
