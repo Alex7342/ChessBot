@@ -1116,7 +1116,7 @@ Move Board::getBestMove(const Piece::Color playerToMove)
 {
 	Move result = Move();
 	this->bestMoveForPreviousDepth = Move();
-	this->stopSearch = false;
+	this->stopSearch.store(false);
 
 	// Function for the search thread
 	auto searchForBestMove = [this](const Piece::Color playerToMove, Move& result)
@@ -1125,13 +1125,13 @@ Move Board::getBestMove(const Piece::Color playerToMove)
 			auto start = std::chrono::high_resolution_clock::now();
 
 			// Search until the depth limit has been reached or until notified the time limit has exceeded
-			for (int depth = 1; depth <= maxSearchDepth && !this->stopSearch; depth++)
+			for (int depth = 1; depth <= maxSearchDepth && !this->stopSearch.load(); depth++)
 			{
 				// Store the result from the minimax algorith for the current depth
 				auto possibleResult = this->minimax(depth, INT_MIN, INT_MAX, playerToMove == Piece::Color::WHITE).move;
 
 				// Check if the minimax search was stopped abruptly because of the time limit
-				if (!this->stopSearch)
+				if (!this->stopSearch.load())
 				{
 					// If not then store the result
 					result = possibleResult;
@@ -1145,7 +1145,7 @@ Move Board::getBestMove(const Piece::Color playerToMove)
 			}
 
 			// Notify that the search has stopped
-			this->stopSearch = true;
+			this->stopSearch.store(true);
 		};
 
 	// Start a new thread that runs the search
@@ -1156,7 +1156,7 @@ Move Board::getBestMove(const Piece::Color playerToMove)
 	while (std::chrono::duration_cast<std::chrono::seconds>(std::chrono::high_resolution_clock::now() - start).count() < searchTime)
 	{
 		// If the search has already reached the depth limit then stop waiting
-		if (this->stopSearch)
+		if (this->stopSearch.load())
 			break;
 
 		// Sleep for a very short amount of time
@@ -1164,7 +1164,7 @@ Move Board::getBestMove(const Piece::Color playerToMove)
 	}
 
 	// Notify the other thread to stop the search once the time limit is exceeded
-	this->stopSearch = true;
+	this->stopSearch.store(true);
 
 	searchThread.join();
 
@@ -1174,7 +1174,7 @@ Move Board::getBestMove(const Piece::Color playerToMove)
 Board::minimaxResult Board::minimax(int depth, int alpha, int beta, const bool whiteToMove)
 {
 	// Check if the search should be stopped
-	if (this->stopSearch)
+	if (this->stopSearch.load())
 		return Board::minimaxResult(Move(), 0);
 
 	// Check if the game is over
@@ -1199,7 +1199,7 @@ Board::minimaxResult Board::minimax(int depth, int alpha, int beta, const bool w
 		for (Move move : moves)
 		{
 			// Check if the search should be stopped before making the current move
-			if (this->stopSearch)
+			if (this->stopSearch.load())
 				return Board::minimaxResult(Move(), 0);
 
 			this->makeMove(move); // Make the current move
@@ -1222,7 +1222,7 @@ Board::minimaxResult Board::minimax(int depth, int alpha, int beta, const bool w
 		}
 
 		// Check if the search should be stopped
-		if (this->stopSearch)
+		if (this->stopSearch.load())
 			return Board::minimaxResult(Move(), 0);
 
 		return result;
@@ -1242,7 +1242,7 @@ Board::minimaxResult Board::minimax(int depth, int alpha, int beta, const bool w
 		for (Move move : moves)
 		{
 			// Check if the search should be stopped before making the current move
-			if (this->stopSearch)
+			if (this->stopSearch.load())
 				return Board::minimaxResult(Move(), 0);
 
 			this->makeMove(move); // Make the current move
@@ -1265,7 +1265,7 @@ Board::minimaxResult Board::minimax(int depth, int alpha, int beta, const bool w
 		}
 
 		// Check if the search should be stopped
-		if (this->stopSearch)
+		if (this->stopSearch.load())
 			return Board::minimaxResult(Move(), 0);
 
 		return result;

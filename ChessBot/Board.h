@@ -3,6 +3,7 @@
 #include <stack>
 #include <set>
 #include <string>
+#include <atomic>
 #include "Piece.h"
 #include "Move.h"
 
@@ -111,7 +112,7 @@ private:
 	static const int searchTime = 10;
 
 	// Bool value to notify the search time has been exceeded
-	bool stopSearch;
+	std::atomic<bool> stopSearch{ false };
 	
 	// The move found by the minimax algorithm using the previous depth (used for iterative deepening)
 	Move bestMoveForPreviousDepth;
