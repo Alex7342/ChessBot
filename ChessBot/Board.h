@@ -106,12 +106,15 @@ private:
 
 	// Value used for board evaluation
 	int evaluation;
+
+	// Number of seconds available for searching the best move
+	static const int searchTime = 10;
+
+	// Bool value to notify the search time has been exceeded
+	bool stopSearch;
 	
 	// The move found by the minimax algorithm using the previous depth (used for iterative deepening)
 	Move bestMoveForPreviousDepth;
-
-	// The depth of the move search
-	static const int searchDepth = 5;
 
 	// Minimax algorithm that searches for the best possible move
 	minimaxResult minimax(int depth, int alpha, int beta, const bool whiteToMove);

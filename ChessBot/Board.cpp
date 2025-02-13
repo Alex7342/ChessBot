@@ -2,6 +2,7 @@
 #include "Move.h"
 #include <algorithm>
 #include <iostream>
+#include <thread>
 
 int getColorIndex(const Piece::Color color)
 {
@@ -1113,20 +1114,61 @@ int Board::evaluate() const
 
 Move Board::getBestMove(const Piece::Color playerToMove)
 {
-	Move result;
+	Move result = Move();
 	this->bestMoveForPreviousDepth = Move();
+	this->stopSearch = false;
 
-	for (int depth = 1; depth <= searchDepth; depth++)
-	{
-		result = this->minimax(depth, INT_MIN, INT_MAX, playerToMove == Piece::Color::WHITE).move;
-		this->bestMoveForPreviousDepth = result;
-	}
+	// Function for the search thread
+	auto searchForBestMove = [this](const Piece::Color playerToMove, Move& result)
+		{
+			// Time at the start of the search
+			auto start = std::chrono::high_resolution_clock::now();
+
+			// Depth to search in the game tree
+			int depth = 1;
+
+			// Search until notified the time has exceeded
+			while (!this->stopSearch)
+			{
+				// Store the result from the minimax algorith for the current depth
+				auto possibleResult = this->minimax(depth, INT_MIN, INT_MAX, playerToMove == Piece::Color::WHITE).move;
+
+				// Check if the minimax search was stopped abruptly because of the time limit
+				if (!this->stopSearch)
+				{
+					// If not then store the result
+					result = possibleResult;
+					this->bestMoveForPreviousDepth = result;
+
+					// Compute time to search to current depth and display it
+					auto stop = std::chrono::high_resolution_clock::now();
+					auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+					std::cout << "Depth " << depth << " reached in " << duration.count() << "ms\n";
+				}
+
+				depth++;
+			}
+		};
+
+	// Start a new thread that runs the search
+	std::thread searchThread(searchForBestMove, playerToMove, std::ref(result));
+	
+	// Sleep while the other thread searches the best move
+	std::this_thread::sleep_for(std::chrono::seconds(searchTime));
+	// Notify the other thread to stop the search
+	this->stopSearch = true;
+
+	searchThread.join();
 
 	return result;
 }
 
 Board::minimaxResult Board::minimax(int depth, int alpha, int beta, const bool whiteToMove)
 {
+	// Check if the search should be stopped
+	if (this->stopSearch)
+		return Board::minimaxResult(Move(), 0);
+
 	// Check if the game is over
 	if (this->checkmate(whiteToMove ? Piece::Color::WHITE : Piece::Color::BLACK))
 		return whiteToMove ? Board::minimaxResult(Move(), INT_MIN + 1) : Board::minimaxResult(Move(), INT_MAX - 1);
@@ -1148,6 +1190,10 @@ Board::minimaxResult Board::minimax(int depth, int alpha, int beta, const bool w
 
 		for (Move move : moves)
 		{
+			// Check if the search should be stopped before making the current move
+			if (this->stopSearch)
+				return Board::minimaxResult(Move(), 0);
+
 			this->makeMove(move); // Make the current move
 
 			if (!this->isInCheck(Piece::Color::WHITE)) // Check if the move is valid
@@ -1167,6 +1213,10 @@ Board::minimaxResult Board::minimax(int depth, int alpha, int beta, const bool w
 				break;
 		}
 
+		// Check if the search should be stopped
+		if (this->stopSearch)
+			return Board::minimaxResult(Move(), 0);
+
 		return result;
 	}
 	else
@@ -1183,6 +1233,10 @@ Board::minimaxResult Board::minimax(int depth, int alpha, int beta, const bool w
 
 		for (Move move : moves)
 		{
+			// Check if the search should be stopped before making the current move
+			if (this->stopSearch)
+				return Board::minimaxResult(Move(), 0);
+
 			this->makeMove(move); // Make the current move
 
 			if (!this->isInCheck(Piece::Color::BLACK)) // Check if the move is valid
@@ -1201,6 +1255,10 @@ Board::minimaxResult Board::minimax(int depth, int alpha, int beta, const bool w
 			if (beta <= alpha)
 				break;
 		}
+
+		// Check if the search should be stopped
+		if (this->stopSearch)
+			return Board::minimaxResult(Move(), 0);
 
 		return result;
 	}
