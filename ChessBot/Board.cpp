@@ -1124,11 +1124,8 @@ Move Board::getBestMove(const Piece::Color playerToMove)
 			// Time at the start of the search
 			auto start = std::chrono::high_resolution_clock::now();
 
-			// Depth to search in the game tree
-			int depth = 1;
-
-			// Search until notified the time has exceeded
-			while (!this->stopSearch)
+			// Search until the depth limit has been reached or until notified the time limit has exceeded
+			for (int depth = 1; depth <= maxSearchDepth && !this->stopSearch; depth++)
 			{
 				// Store the result from the minimax algorith for the current depth
 				auto possibleResult = this->minimax(depth, INT_MIN, INT_MAX, playerToMove == Piece::Color::WHITE).move;
@@ -1145,17 +1142,28 @@ Move Board::getBestMove(const Piece::Color playerToMove)
 					auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
 					std::cout << "Depth " << depth << " reached in " << duration.count() << "ms\n";
 				}
-
-				depth++;
 			}
+
+			// Notify that the search has stopped
+			this->stopSearch = true;
 		};
 
 	// Start a new thread that runs the search
 	std::thread searchThread(searchForBestMove, playerToMove, std::ref(result));
 	
-	// Sleep while the other thread searches the best move
-	std::this_thread::sleep_for(std::chrono::seconds(searchTime));
-	// Notify the other thread to stop the search
+	// Wait for the other thread to search the best move until the time limit is exceeded
+	auto start = std::chrono::high_resolution_clock::now();
+	while (std::chrono::duration_cast<std::chrono::seconds>(std::chrono::high_resolution_clock::now() - start).count() < searchTime)
+	{
+		// If the search has already reached the depth limit then stop waiting
+		if (this->stopSearch)
+			break;
+
+		// Sleep for a very short amount of time
+		std::this_thread::sleep_for(std::chrono::milliseconds(50));
+	}
+
+	// Notify the other thread to stop the search once the time limit is exceeded
 	this->stopSearch = true;
 
 	searchThread.join();
