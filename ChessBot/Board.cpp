@@ -807,16 +807,13 @@ bool Board::isInCheck(const Piece::Color color) const
 	return this->isAttackedBy(this->blackKingPosition, Piece::Color::WHITE);
 }
 
-Board::GameState Board::getGameState(const Piece::Color color)
+Board::GameState Board::getGameState(const Piece::Color color, const std::vector<Move>& possibleMoves)
 {
 	// Check if the king is in check or not
 	bool check = this->isInCheck(color);
 
-	// Get all possible moves
-	std::vector<Move> moves = this->getMoves(color);
-
 	// Check each move and if the king is not in check after it then the game is not finished
-	for (Move move : moves)
+	for (Move move : possibleMoves)
 	{
 		// Make the move on the board
 		this->makeMove(move);
@@ -1178,8 +1175,11 @@ Board::minimaxResult Board::minimax(int depth, int alpha, int beta, const bool w
 	if (this->stopSearch.load())
 		return Board::minimaxResult(Move(), 0);
 
+	// Get all the possible moves of the current player
+	std::vector<Move> moves = this->getMoves(whiteToMove ? Piece::Color::WHITE : Piece::Color::BLACK);
+
 	// Get the current state of the game
-	GameState gameState = this->getGameState(whiteToMove ? Piece::Color::WHITE : Piece::Color::BLACK);
+	GameState gameState = this->getGameState(whiteToMove ? Piece::Color::WHITE : Piece::Color::BLACK, moves);
 	
 	// Check for checkmate
 	if (gameState == GameState::CHECKMATE)
@@ -1196,9 +1196,6 @@ Board::minimaxResult Board::minimax(int depth, int alpha, int beta, const bool w
 	{
 		// Initialize the result with an empty move and the smallest possible value
 		Board::minimaxResult result(Move(), INT_MIN);
-
-		// Get all the possible moves of the white player
-		std::vector<Move> moves = this->getMoves(Piece::Color::WHITE);
 
 		// Reset the best move from the previous depth if we already used it to avoid affecting move generation at deeper game tree levels
 		if (!moves.empty() && moves.front() == this->bestMoveForPreviousDepth)
@@ -1239,9 +1236,6 @@ Board::minimaxResult Board::minimax(int depth, int alpha, int beta, const bool w
 	{
 		// Initialize the result with an empty move and the biggest possible value
 		Board::minimaxResult result(Move(), INT_MAX);
-
-		// Get all the possible moves of the black player
-		std::vector<Move> moves = this->getMoves(Piece::Color::BLACK);
 
 		// Reset the best move from the previous depth if we already used it to avoid affecting move generation at deeper game tree levels
 		if (!moves.empty() && moves.front() == this->bestMoveForPreviousDepth)

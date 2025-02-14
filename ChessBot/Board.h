@@ -99,7 +99,7 @@ private:
 	bool isInCheck(const Piece::Color color) const;
 
 	// Returns true if the player of the given color is checkmated, false otherwise
-	GameState getGameState(const Piece::Color color);
+	GameState getGameState(const Piece::Color color, const std::vector<Move>& possibleMoves);
 
 
 	// Special case of makeMove for handling castles
