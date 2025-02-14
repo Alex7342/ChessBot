@@ -29,6 +29,14 @@ private:
 		ADD_PIECE = 2,
 	};
 
+	// Enum for all possible game states
+	enum GameState
+	{
+		UNFINISHED = 0,
+		CHECKMATE = 1,
+		STALEMATE = 2
+	};
+
 	// Array that represents the current state of the board
 	Piece board[8][8];
 
@@ -90,8 +98,8 @@ private:
 	// Returns true if the king of given color is in check, false otherwise
 	bool isInCheck(const Piece::Color color) const;
 
-	//Returns true if the player of the given color is checkmated, false otherwise
-	bool checkmate(const Piece::Color color);
+	// Returns true if the player of the given color is checkmated, false otherwise
+	GameState getGameState(const Piece::Color color);
 
 
 	// Special case of makeMove for handling castles

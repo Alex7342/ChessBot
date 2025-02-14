@@ -807,35 +807,36 @@ bool Board::isInCheck(const Piece::Color color) const
 	return this->isAttackedBy(this->blackKingPosition, Piece::Color::WHITE);
 }
 
-bool Board::checkmate(const Piece::Color color)
+Board::GameState Board::getGameState(const Piece::Color color)
 {
 	// Check if the king is in check or not
-	if (!this->isInCheck(color))
-		return false;
+	bool check = this->isInCheck(color);
 
 	// Get all possible moves
 	std::vector<Move> moves = this->getMoves(color);
 
-	// Check each move and if the king gets out of check after it then it is not checkmate
+	// Check each move and if the king is not in check after it then the game is not finished
 	for (Move move : moves)
 	{
 		// Make the move on the board
 		this->makeMove(move);
 
-		// Check if the king escaped check
+		// Check if the king is not in check
 		if (!this->isInCheck(color))
 		{
 			// If so, undo the move and return false
 			this->undoMove();
-			return false;
+			return GameState::UNFINISHED;
 		}
 		
-		// If this line is reached then the current move did not get the king out of check and has to be undone
+		// If this line is reached then the current move got the king in check and has to be undone
 		this->undoMove();
 	}
 
-	// Return true if no move got the king out of check
-	return true;
+	// If this line was reached then all possible moves get the king in check
+	if (check)
+		return GameState::CHECKMATE; // If the king is already in check himself then it is checkmate
+	return GameState::STALEMATE; // Otherwise it is stalemate as there are no legal moves but there is no check
 }
 
 std::vector<Move> Board::getMoves(const Piece::Color playerColor) const
@@ -1177,9 +1178,16 @@ Board::minimaxResult Board::minimax(int depth, int alpha, int beta, const bool w
 	if (this->stopSearch.load())
 		return Board::minimaxResult(Move(), 0);
 
-	// Check if the game is over
-	if (this->checkmate(whiteToMove ? Piece::Color::WHITE : Piece::Color::BLACK))
+	// Get the current state of the game
+	GameState gameState = this->getGameState(whiteToMove ? Piece::Color::WHITE : Piece::Color::BLACK);
+	
+	// Check for checkmate
+	if (gameState == GameState::CHECKMATE)
 		return whiteToMove ? Board::minimaxResult(Move(), INT_MIN + 1) : Board::minimaxResult(Move(), INT_MAX - 1);
+	
+	// Check for stalemate
+	if (gameState == GameState::STALEMATE)
+		return Board::minimaxResult(Move(), 0);
 
 	if (depth == 0)
 		return Board::minimaxResult(Move(), this->evaluate());
