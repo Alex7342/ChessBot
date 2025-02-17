@@ -85,12 +85,16 @@ Board::Board()
 				for (int column = 0; column < 8; column++)
 					zobristValues[colorIndex][pieceType][row][column] = ((uint64_t)rand() << 32) | rand();
 
+	this->blackToMoveZobristValue = ((uint64_t)rand() << 32) | rand();
+
 	this->zobristHash = 0;
 
 	for (int i = 0; i < 8; i++)
 		for (int j = 0; j < 8; j++)
 			if (this->board[i][j].getType() != Piece::Type::NONE)
 				this->zobristHash = this->zobristHash ^ this->zobristValues[getColorIndex(this->board[i][j].getColor())][this->board[i][j].getType()][i][j];
+
+	this->transpositionTable.resize(transpositionTableSize);
 }
 
 Piece Board::getPiece(const Position position) const
@@ -1031,6 +1035,42 @@ bool Board::compareMoves(const Move& firstMove, const Move& secondMove) const
 	return false;
 }
 
+bool Board::isValid(const Move move, const Piece::Color playerToMove)
+{
+	Position initialPosition = move.getInitialPosition();
+	Position targetPosition = move.getTargetPosition();
+
+	Piece pieceToMove = this->getPiece(initialPosition);
+
+	// Check if the color of the moving piece is correct
+	if (pieceToMove.getColor() != playerToMove)
+		return false;
+
+	Piece pieceToBeCaptured = this->getPiece(targetPosition);
+
+	// Check if the color of the captured piece is correct
+	if (pieceToBeCaptured.getColor() == playerToMove)
+		return false;
+
+	// Check if the captured piece is a king
+	if (pieceToBeCaptured.getType() == Piece::Type::KING)
+		return false;
+	
+	// TODO Check if the move is possible for each type of piece
+
+	return true;
+}
+
+void Board::passTheTurn()
+{
+	this->zobristHash = this->zobristHash ^ this->blackToMoveZobristValue;
+}
+
+int Board::getZobristHash()
+{
+	return this->zobristHash % this->transpositionTableSize;
+}
+
 void Board::applyChangeToZobristHash(const Piece piece)
 {
 	this->zobristHash = this->zobristHash ^ this->zobristValues[getColorIndex(piece.getColor())][piece.getType()][piece.getPosition().row()][piece.getPosition().column()];
@@ -1206,6 +1246,16 @@ Board::minimaxResult Board::minimax(int depth, int alpha, int beta, const bool w
 	if (this->stopSearch.load())
 		return Board::minimaxResult(Move(), 0);
 
+	// Check if the move for this board state has already been computed
+	if (this->transpositionTable[this->getZobristHash()].depth >= depth)
+	{
+		Board::TranspositionTableEntry tableEntry = this->transpositionTable[this->getZobristHash()];
+		Piece::Color currentPlayer = whiteToMove ? Piece::Color::WHITE : Piece::Color::BLACK;
+
+		if (this->isValid(tableEntry.move, currentPlayer))
+			return Board::minimaxResult(tableEntry.move, tableEntry.evaluation);
+	}
+
 	// Get all the possible moves of the current player
 	std::vector<Move> moves = this->getMoves(whiteToMove ? Piece::Color::WHITE : Piece::Color::BLACK);
 
@@ -1239,6 +1289,7 @@ Board::minimaxResult Board::minimax(int depth, int alpha, int beta, const bool w
 				return Board::minimaxResult(Move(), 0);
 
 			this->makeMove(move); // Make the current move
+			this->passTheTurn(); // Change the player
 
 			if (!this->isInCheck(Piece::Color::WHITE)) // Check if the move is valid
 			{
@@ -1252,6 +1303,7 @@ Board::minimaxResult Board::minimax(int depth, int alpha, int beta, const bool w
 			}
 
 			this->undoMove(); // Undo the current move to bring the table back to its original state
+			this->passTheTurn(); // Return to the original player
 
 			if (beta <= alpha)
 				break;
@@ -1261,6 +1313,11 @@ Board::minimaxResult Board::minimax(int depth, int alpha, int beta, const bool w
 		if (this->stopSearch.load())
 			return Board::minimaxResult(Move(), 0);
 
+		// Store the found move in the transposition table
+		if (depth >= this->transpositionTable[this->getZobristHash()].depth)
+			this->transpositionTable[this->getZobristHash()] = Board::TranspositionTableEntry(result.move, depth, result.value);
+
+		// Return the result
 		return result;
 	}
 	else
@@ -1279,6 +1336,7 @@ Board::minimaxResult Board::minimax(int depth, int alpha, int beta, const bool w
 				return Board::minimaxResult(Move(), 0);
 
 			this->makeMove(move); // Make the current move
+			this->passTheTurn(); // Change the player
 
 			if (!this->isInCheck(Piece::Color::BLACK)) // Check if the move is valid
 			{
@@ -1292,6 +1350,7 @@ Board::minimaxResult Board::minimax(int depth, int alpha, int beta, const bool w
 			}
 
 			this->undoMove(); // Undo the current move to bring the table back to its original state
+			this->passTheTurn(); // Return to the original player
 
 			if (beta <= alpha)
 				break;
@@ -1301,6 +1360,11 @@ Board::minimaxResult Board::minimax(int depth, int alpha, int beta, const bool w
 		if (this->stopSearch.load())
 			return Board::minimaxResult(Move(), 0);
 
+		// Store the found move in the transposition table
+		if (depth >= this->transpositionTable[this->getZobristHash()].depth)
+			this->transpositionTable[this->getZobristHash()] = Board::TranspositionTableEntry(result.move, depth, result.value);
+
+		// Return the result
 		return result;
 	}
 }
@@ -1362,3 +1426,7 @@ std::string Board::attackedSquaresToString(const Piece::Color color) const
 }
 
 Board::minimaxResult::minimaxResult(const Move move, const int value) : move(move), value(value) {}
+
+Board::TranspositionTableEntry::TranspositionTableEntry() : move(Move()), depth(0) {}
+
+Board::TranspositionTableEntry::TranspositionTableEntry(const Move move, const int depth, const int evaluation) : move(move), depth(depth), evaluation(evaluation) {}

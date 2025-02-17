@@ -21,6 +21,21 @@ private:
 		minimaxResult(const Move move, const int value);
 	};
 
+	class TranspositionTableEntry
+	{
+	public:
+		// The stored move (the best move found so far for the state the board is in)
+		Move move;
+		// The depth of the search that found the stored move
+		int depth;
+		// The evaluation of the board corresponding to the stored move
+		int evaluation;
+		// Construct an empty transposition table entry
+		TranspositionTableEntry();
+		// Construct a transposition table entry given a move and a depth
+		TranspositionTableEntry(const Move move, const int depth, const int evaluation);
+	};
+
 	// Enum for all possible actions performed on the board
 	enum Action
 	{
@@ -112,9 +127,27 @@ private:
 	// Function to compare probable move value
 	bool compareMoves(const Move& firstMove, const Move& secondMove) const;
 
+	// Checks if a move is valid or not
+	bool isValid(const Move move, const Piece::Color playerToMove);
+
 
 	// Zobrist hash values for each type of piece of each color on every possible square
-	uint64_t zobristValues[2][7][8][8]; 
+	uint64_t zobristValues[2][7][8][8];
+
+	// Zorbist hash value for the player turn
+	uint64_t blackToMoveZobristValue;
+
+	// Pass the turn to the other player and update the hash accordingly
+	void passTheTurn();
+
+	// The size of the transposition table
+	int transpositionTableSize = 67108879;
+
+	// Get an index that fits in the transposition table
+	int getZobristHash();
+
+	// Transposition table used for storing already searched moves
+	std::vector<TranspositionTableEntry> transpositionTable;
 
 	// Change the current hash of the board according to adding or removing the given piece
 	void applyChangeToZobristHash(const Piece piece);
