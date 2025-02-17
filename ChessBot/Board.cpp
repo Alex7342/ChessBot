@@ -1078,8 +1078,7 @@ bool Board::isValid(const Move move, const Piece::Color playerToMove)
 				if (pieceToBeCaptured.getType() != Piece::Type::NONE)
 					return false;
 			}
-
-			if (targetPosition == initialPosition.Up().Up())
+			else if (targetPosition == initialPosition.Up().Up())
 			{
 				// The pawn must be on its first move
 				if (pieceToMove.hasMoved())
@@ -1089,8 +1088,7 @@ bool Board::isValid(const Move move, const Piece::Color playerToMove)
 				if (pieceToBeCaptured.getType() != Piece::Type::NONE)
 					return false;
 			}
-
-			if (targetPosition == initialPosition.UpLeft() || targetPosition == initialPosition.UpRight())
+			else if (targetPosition == initialPosition.UpLeft() || targetPosition == initialPosition.UpRight())
 			{
 				// Check for en passant
 				if (pieceToBeCaptured.getType() == Piece::Type::NONE)
@@ -1111,6 +1109,10 @@ bool Board::isValid(const Move move, const Piece::Color playerToMove)
 						return false;
 				}
 			}
+			else
+			{
+				return false;
+			}
 		}
 		else
 		{
@@ -1120,8 +1122,7 @@ bool Board::isValid(const Move move, const Piece::Color playerToMove)
 				if (pieceToBeCaptured.getType() != Piece::Type::NONE)
 					return false;
 			}
-
-			if (targetPosition == initialPosition.Down().Down())
+			else if (targetPosition == initialPosition.Down().Down())
 			{
 				// The pawn must be on its first move
 				if (pieceToMove.hasMoved())
@@ -1131,8 +1132,7 @@ bool Board::isValid(const Move move, const Piece::Color playerToMove)
 				if (pieceToBeCaptured.getType() != Piece::Type::NONE)
 					return false;
 			}
-
-			if (targetPosition == initialPosition.DownLeft() || targetPosition == initialPosition.DownRight())
+			else if (targetPosition == initialPosition.DownLeft() || targetPosition == initialPosition.DownRight())
 			{
 				// Check for en passant
 				if (pieceToBeCaptured.getType() == Piece::Type::NONE)
@@ -1152,6 +1152,10 @@ bool Board::isValid(const Move move, const Piece::Color playerToMove)
 					if (!(!lastRemovedPiece.hasMoved() && lastAddedPiece.getPosition() == targetPosition.Up()))
 						return false;
 				}
+			}
+			else
+			{
+				return false;
 			}
 		}
 	}
