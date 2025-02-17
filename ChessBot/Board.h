@@ -113,6 +113,13 @@ private:
 	bool compareMoves(const Move& firstMove, const Move& secondMove) const;
 
 
+	// Zobrist hash values for each type of piece of each color on every possible square
+	uint64_t zobristValues[2][7][8][8]; 
+
+	// Change the current hash of the board according to adding or removing the given piece
+	void applyChangeToZobristHash(const Piece piece);
+
+
 	// Value used for board evaluation
 	int evaluation;
 
@@ -132,6 +139,9 @@ private:
 	minimaxResult minimax(int depth, int alpha, int beta, const bool whiteToMove);
 
 public:
+	// Value of the zobrist hash for the current state of the table;
+	uint64_t zobristHash;
+
 	// Construct a board with the default chess setup
 	Board();
 

@@ -78,6 +78,19 @@ Board::Board()
 		}
 	
 	this->evaluation = 0;
+
+	for (int colorIndex = 0; colorIndex < 2; colorIndex++)
+		for (int pieceType = 0; pieceType < 7; pieceType++)
+			for (int row = 0; row < 8; row++)
+				for (int column = 0; column < 8; column++)
+					zobristValues[colorIndex][pieceType][row][column] = ((uint64_t)rand() << 32) | rand();
+
+	this->zobristHash = 0;
+
+	for (int i = 0; i < 8; i++)
+		for (int j = 0; j < 8; j++)
+			if (this->board[i][j].getType() != Piece::Type::NONE)
+				this->zobristHash = this->zobristHash ^ this->zobristValues[getColorIndex(this->board[i][j].getColor())][this->board[i][j].getType()][i][j];
 }
 
 Piece Board::getPiece(const Position position) const
@@ -919,17 +932,21 @@ void Board::castle(const Move move)
 
 	// Remove the king from his position
 	this->removePiece(king);
+	this->applyChangeToZobristHash(king);
 
 	// Create a new king piece at the target position with hasMoved = true
 	Piece movedKing = Piece(king.getType(), king.getColor(), kingTargetPosition, true);
 	this->addPiece(movedKing);
+	this->applyChangeToZobristHash(movedKing);
 
 	// Remove the rook from his position
 	this->removePiece(rook);
+	this->applyChangeToZobristHash(rook);
 
 	// Create a new rook piece at the target position with hasMoved = true
 	Piece movedRook = Piece(rook.getType(), rook.getColor(), rookTargetPosition, true);
 	this->addPiece(movedRook);
+	this->applyChangeToZobristHash(movedRook);
 
 	// Add a separator at the end of the move
 	this->actionsMade.push(Action::SEPARATOR);
@@ -943,14 +960,18 @@ void Board::enPassant(const Move move)
 
 	// Remove the captured pawn below targetPosition
 	Position positionToCapture = (pawn.getColor() == Piece::Color::WHITE) ? targetPosition.Down() : targetPosition.Up();
-	this->removePiece(this->getPiece(positionToCapture));
+	Piece pawnToBeCaptured = this->getPiece(positionToCapture);
+	this->removePiece(pawnToBeCaptured);
+	this->applyChangeToZobristHash(pawnToBeCaptured);
 
 	// Remove the pawn from its initial position
 	this->removePiece(pawn);
+	this->applyChangeToZobristHash(pawn);
 
 	// Create a new pawn piece at the target position with hasMoved = true
 	Piece movedPawn = Piece(pawn.getType(), pawn.getColor(), targetPosition, true);
 	this->addPiece(movedPawn);
+	this->applyChangeToZobristHash(movedPawn);
 
 	this->actionsMade.push(Action::SEPARATOR);
 }
@@ -1010,6 +1031,11 @@ bool Board::compareMoves(const Move& firstMove, const Move& secondMove) const
 	return false;
 }
 
+void Board::applyChangeToZobristHash(const Piece piece)
+{
+	this->zobristHash = this->zobristHash ^ this->zobristValues[getColorIndex(piece.getColor())][piece.getType()][piece.getPosition().row()][piece.getPosition().column()];
+}
+
 void Board::makeMove(const Move move)
 {
 	Position initialPosition = move.getInitialPosition();
@@ -1050,16 +1076,19 @@ void Board::makeMove(const Move move)
 	if (pieceToGetCaptured.getType() != Piece::Type::NONE)
 	{
 		this->removePiece(pieceToGetCaptured);
+		this->applyChangeToZobristHash(pieceToGetCaptured);
 	}
 
 	// Remove the piece to move from its square
 	this->removePiece(pieceToMove);
+	this->applyChangeToZobristHash(pieceToMove);
 
 	// Add the piece to move to the target square
 	Piece movedPiece = Piece(pieceToMove.getType(), pieceToMove.getColor(), targetPosition, true); // Get a new piece with correct position and hasMoved
 	if (move.getPromotionType() != Piece::Type::NONE && pieceToMove.getType() == Piece::Type::PAWN) // Check if the move is a pawn promotion
 		movedPiece.setType(move.getPromotionType());
 	this->addPiece(movedPiece);
+	this->applyChangeToZobristHash(movedPiece);
 
 	// Add a separator to the stack to mark the end of the move
 	this->actionsMade.push(Action::SEPARATOR);
@@ -1091,6 +1120,7 @@ void Board::undoMove()
 
 			// Add the piece back with silent = true to avoid modifying the helper stacks
 			this->addPiece(removedPiece, true);
+			this->applyChangeToZobristHash(removedPiece);
 		}
 		else if (action == Action::ADD_PIECE)
 		{
@@ -1100,6 +1130,7 @@ void Board::undoMove()
 
 			// Remove the piece with silent = true to avoid modifying the helper stacks
 			this->removePiece(addedPiece, true);
+			this->applyChangeToZobristHash(addedPiece);
 		}
 	}
 }
