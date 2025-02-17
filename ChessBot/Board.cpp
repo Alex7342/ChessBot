@@ -1042,6 +1042,10 @@ bool Board::isValid(const Move move, const Piece::Color playerToMove)
 	Position initialPosition = move.getInitialPosition();
 	Position targetPosition = move.getTargetPosition();
 
+	// Check if the move is empty
+	if (initialPosition == targetPosition)
+		return false;
+
 	Piece pieceToMove = this->getPiece(initialPosition);
 
 	// Check if the color of the moving piece is correct
@@ -1059,8 +1063,283 @@ bool Board::isValid(const Move move, const Piece::Color playerToMove)
 		return false;
 	
 	// TODO Check if the move is possible for each type of piece
+	if (pieceToMove.getType() == Piece::Type::NONE)
+	{
+		return false;
+	}
 
-	return true;
+	if (pieceToMove.getType() == Piece::Type::PAWN)
+	{
+		if (pieceToMove.getColor() == Piece::Color::WHITE)
+		{
+			if (targetPosition == initialPosition.Up())
+			{
+				// Square has to be empty
+				if (pieceToBeCaptured.getType() != Piece::Type::NONE)
+					return false;
+			}
+
+			if (targetPosition == initialPosition.Up().Up())
+			{
+				// The pawn must be on its first move
+				if (pieceToMove.hasMoved())
+					return false;
+				
+				// The square must be empty
+				if (pieceToBeCaptured.getType() != Piece::Type::NONE)
+					return false;
+			}
+
+			if (targetPosition == initialPosition.UpLeft() || targetPosition == initialPosition.UpRight())
+			{
+				// Check for en passant
+				if (pieceToBeCaptured.getType() == Piece::Type::NONE)
+				{
+					// En passant with a white pawn only takes place when it is on row 3
+					if (pieceToMove.getPosition().row() != 3)
+						return false;
+
+					Piece lastRemovedPiece = this->removedPieces.top();
+					Piece lastAddedPiece = this->addedPieces.top();
+
+					// Check if the last moved piece is a pawn
+					if (!(lastRemovedPiece.getType() == Piece::Type::PAWN && lastAddedPiece.getType() == Piece::Type::PAWN))
+						return false;
+					
+					// Check if the pawn moved 2 pieces forward
+					if (!(!lastRemovedPiece.hasMoved() && lastAddedPiece.getPosition() == targetPosition.Down()))
+						return false;
+				}
+			}
+		}
+		else
+		{
+			if (targetPosition == initialPosition.Down())
+			{
+				// Square has to be empty
+				if (pieceToBeCaptured.getType() != Piece::Type::NONE)
+					return false;
+			}
+
+			if (targetPosition == initialPosition.Down().Down())
+			{
+				// The pawn must be on its first move
+				if (pieceToMove.hasMoved())
+					return false;
+
+				// The square must be empty
+				if (pieceToBeCaptured.getType() != Piece::Type::NONE)
+					return false;
+			}
+
+			if (targetPosition == initialPosition.DownLeft() || targetPosition == initialPosition.DownRight())
+			{
+				// Check for en passant
+				if (pieceToBeCaptured.getType() == Piece::Type::NONE)
+				{
+					// En passant with a black pawn only takes place when it is on row 4
+					if (pieceToMove.getPosition().row() != 4)
+						return false;
+
+					Piece lastRemovedPiece = this->removedPieces.top();
+					Piece lastAddedPiece = this->addedPieces.top();
+
+					// Check if the last moved piece is a pawn
+					if (!(lastRemovedPiece.getType() == Piece::Type::PAWN && lastAddedPiece.getType() == Piece::Type::PAWN))
+						return false;
+
+					// Check if the pawn moved 2 pieces forward
+					if (!(!lastRemovedPiece.hasMoved() && lastAddedPiece.getPosition() == targetPosition.Up()))
+						return false;
+				}
+			}
+		}
+	}
+
+	if (pieceToMove.getType() == Piece::Type::BISHOP)
+	{
+		int rowDifference = targetPosition.row() - initialPosition.row();
+		int columnDifference = targetPosition.column() - initialPosition.column();
+
+		// Make sure the initial position and target position are on the same diagonal
+		if (abs(rowDifference) != abs(columnDifference))
+			return false;
+
+		// Make sure the positions are not the same
+		if (rowDifference == 0)
+			return false;
+
+		int absDifference = abs(rowDifference);
+		Position direction(rowDifference / absDifference, columnDifference / absDifference);
+
+		// Check if there is any piece between the initial position and the target position
+		Position positionToCheck = initialPosition + direction;
+		while (positionToCheck != targetPosition)
+		{
+			if (this->getPiece(positionToCheck).getType() != Piece::Type::NONE)
+				return false;
+
+			positionToCheck = positionToCheck + direction;
+		}
+	}
+
+	if (pieceToMove.getType() == Piece::Type::ROOK)
+	{
+		int rowDifference = targetPosition.row() - initialPosition.row();
+		int columnDifference = targetPosition.column() - initialPosition.column();
+
+		// Make sure the position are on the same line or column
+		if (rowDifference != 0 && columnDifference != 0)
+			return false;
+
+		// Make sure the positions are not the same
+		if (rowDifference == 0 && columnDifference == 0)
+			return false;
+
+		int absDifference = std::max(abs(rowDifference), abs(columnDifference));
+		Position direction(rowDifference / absDifference, columnDifference / absDifference);
+
+		// Check if there is any piece between the initial position and the target position
+		Position positionToCheck = initialPosition + direction;
+		while (positionToCheck != targetPosition)
+		{
+			if (this->getPiece(positionToCheck).getType() != Piece::Type::NONE)
+				return false;
+
+			positionToCheck = positionToCheck + direction;
+		}
+	}
+
+	if (pieceToMove.getType() == Piece::Type::QUEEN)
+	{
+		int rowDifference = targetPosition.row() - initialPosition.row();
+		int columnDifference = targetPosition.column() - initialPosition.column();
+
+		Position direction;
+
+		if (abs(rowDifference) == abs(columnDifference))
+		{
+			int absDifference = abs(rowDifference);
+			direction = Position(rowDifference / absDifference, columnDifference / absDifference);
+		}
+		else if (rowDifference == 0 || columnDifference == 0)
+		{
+			int absDifference = std::max(abs(rowDifference), abs(columnDifference));
+			direction = Position(rowDifference / absDifference, columnDifference / absDifference);
+		}
+		else
+		{
+			return false;
+		}
+
+		// Check if there is any piece between the initial position and the target position
+		Position positionToCheck = initialPosition + direction;
+		while (positionToCheck != targetPosition)
+		{
+			if (this->getPiece(positionToCheck).getType() != Piece::Type::NONE)
+				return false;
+
+			positionToCheck = positionToCheck + direction;
+		}
+	}
+
+	if (pieceToMove.getType() == Piece::Type::KNIGHT)
+	{
+		int rowDifference = targetPosition.row() - initialPosition.row();
+		int columnDifference = targetPosition.column() - initialPosition.column();
+
+		// Check if the move is an "L move"
+		if (!((abs(rowDifference) == 2 && abs(columnDifference) == 1) || (abs(rowDifference) == 1 && abs(columnDifference) == 2)))
+			return false;
+
+		// Check if the target square is available
+		if (!this->availableSquare(playerToMove, targetPosition.row(), targetPosition.column()))
+			return false;
+	}
+
+	if (pieceToMove.getType() == Piece::Type::KING)
+	{
+		int rowDifference = targetPosition.row() - initialPosition.row();
+		int columnDifference = targetPosition.column() - initialPosition.column();
+
+		// The king cannot move more than one row per move
+		if (abs(rowDifference) > 1)
+			return false;
+
+		// A king can only move 1 column per move except when it casltes (2 columns)
+		if (abs(columnDifference) > 2)
+			return false;
+
+		// Castle case
+		if (abs(columnDifference) == 2)
+		{
+			// The king cannot castle if it has already moved
+			if (pieceToMove.hasMoved())
+				return false;
+
+			if (columnDifference == 2)
+			{
+				Piece possibleRook = this->getPiece(Position(initialPosition.row(), 7));
+
+				if (possibleRook.getType() == Piece::Type::ROOK && !possibleRook.hasMoved())
+				{
+					bool canCastle = true;
+
+					// Check if the square between the king and the rook are empty
+					for (int columnToCheck = initialPosition.column() + 1; columnToCheck < 7 && canCastle; columnToCheck++)
+						if (this->board[initialPosition.row()][columnToCheck].getType() != Piece::Type::NONE)
+							canCastle = false;
+
+					// Check if the squares the king would travel are attacked by the other color
+					Piece::Color otherColor = playerToMove == Piece::Color::WHITE ? Piece::Color::BLACK : Piece::Color::WHITE;
+					for (int columnToCheck = initialPosition.column(); columnToCheck <= initialPosition.column() + 2 && canCastle; columnToCheck++)
+						if (this->isAttackedBy(Position(initialPosition.row(), columnToCheck), otherColor))
+							canCastle = false;
+
+					if (!canCastle)
+						return false;
+				}
+				else
+				{
+					return false;
+				}
+			}
+			else
+			{
+				Piece possibleRook = this->getPiece(Position(initialPosition.row(), 0));
+
+				if (possibleRook.getType() == Piece::Type::ROOK && !possibleRook.hasMoved())
+				{
+					bool canCastle = true;
+
+					// Check if the square between the king and the rook are empty
+					for (int columnToCheck = 1; columnToCheck < initialPosition.column() && canCastle; columnToCheck++)
+						if (this->board[initialPosition.row()][columnToCheck].getType() != Piece::Type::NONE)
+							canCastle = false;
+
+					// Check if the squares the king would travel are attacked by the other color
+					Piece::Color otherColor = playerToMove == Piece::Color::WHITE ? Piece::Color::BLACK : Piece::Color::WHITE;
+					for (int columnToCheck = initialPosition.column() - 2; columnToCheck <= initialPosition.column() && canCastle; columnToCheck++)
+						if (this->isAttackedBy(Position(initialPosition.row(), columnToCheck), otherColor))
+							canCastle = false;
+
+					if (!canCastle)
+						return false;
+				}
+				else
+				{
+					return false;
+				}
+			}
+		}
+	}
+
+	// Check if the current move would put the king in check
+	this->makeMove(move);
+	bool kingInCheck = this->isInCheck(playerToMove);
+	this->undoMove();
+
+	return !kingInCheck;
 }
 
 void Board::passTheTurn()
