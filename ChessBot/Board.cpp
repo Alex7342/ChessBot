@@ -79,6 +79,8 @@ Board::Board()
 	
 	this->evaluation = 0;
 
+	srand(time(NULL));
+
 	for (int colorIndex = 0; colorIndex < 2; colorIndex++)
 		for (int pieceType = 0; pieceType < 7; pieceType++)
 			for (int row = 0; row < 8; row++)
