@@ -141,7 +141,7 @@ private:
 	void passTheTurn();
 
 	// The size of the transposition table
-	int transpositionTableSize = 67108879;
+	int transpositionTableSize = 19173949;
 
 	// Get an index that fits in the transposition table
 	int getZobristHash();
