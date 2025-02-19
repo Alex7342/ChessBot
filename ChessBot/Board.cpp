@@ -1,5 +1,8 @@
 #include "Board.h"
 #include "Move.h"
+#include <algorithm>
+#include <iostream>
+#include <thread>
 
 int getColorIndex(const Piece::Color color)
 {
@@ -73,6 +76,27 @@ Board::Board()
 				this->occupiedSquares[index].insert(this->board[i][j].getPosition());
 			}
 		}
+	
+	this->evaluation = 0;
+
+	srand(time(NULL));
+
+	for (int colorIndex = 0; colorIndex < 2; colorIndex++)
+		for (int pieceType = 0; pieceType < 7; pieceType++)
+			for (int row = 0; row < 8; row++)
+				for (int column = 0; column < 8; column++)
+					zobristValues[colorIndex][pieceType][row][column] = ((uint64_t)rand() << 32) | rand();
+
+	this->blackToMoveZobristValue = ((uint64_t)rand() << 32) | rand();
+
+	this->zobristHash = 0;
+
+	for (int i = 0; i < 8; i++)
+		for (int j = 0; j < 8; j++)
+			if (this->board[i][j].getType() != Piece::Type::NONE)
+				this->zobristHash = this->zobristHash ^ this->zobristValues[getColorIndex(this->board[i][j].getColor())][this->board[i][j].getType()][i][j];
+
+	this->transpositionTable.resize(transpositionTableSize);
 }
 
 Piece Board::getPiece(const Position position) const
@@ -478,6 +502,25 @@ void Board::addPiece(const Piece piece, const bool silent)
 		else
 			this->blackKingPosition = position;
 	}
+
+	// Compute and add value corresponding to the piece to board evaluation
+	int squareValue = pieceValue[piece.getType()];
+
+	if (piece.getColor() == Piece::Color::BLACK)
+	{
+		// The position value table must be inverted for black pieces
+		squareValue += positionValue[piece.getType()][7 - position.row()][position.column()];
+
+		// The value of the square is negative for black pieces
+		squareValue = -squareValue;
+	}
+	else
+	{
+		// Simply add the positional value for a white piece
+		squareValue += positionValue[piece.getType()][position.row()][position.column()];
+	}
+
+	this->evaluation += squareValue;
 }
 
 void Board::removePiece(const Piece piece, const bool silent)
@@ -495,6 +538,25 @@ void Board::removePiece(const Piece piece, const bool silent)
 	// Unmark the previously occupied square
 	int colorIndex = getColorIndex(piece.getColor());
 	this->occupiedSquares[colorIndex].erase(position);
+
+	// Compute and subtract value corresponding to the piece to board evaluation
+	int squareValue = pieceValue[piece.getType()];
+
+	if (piece.getColor() == Piece::Color::BLACK)
+	{
+		// The position value table must be inverted for black pieces
+		squareValue += positionValue[piece.getType()][7 - position.row()][position.column()];
+
+		// The value of the square is negative for black pieces
+		squareValue = -squareValue;
+	}
+	else
+	{
+		// Simply add the positional value for a white piece
+		squareValue += positionValue[piece.getType()][position.row()][position.column()];
+	}
+
+	this->evaluation -= squareValue;
 }
 
 bool Board::isAttackedBy(const Position position, const Piece::Color attackingColor) const
@@ -764,35 +826,33 @@ bool Board::isInCheck(const Piece::Color color) const
 	return this->isAttackedBy(this->blackKingPosition, Piece::Color::WHITE);
 }
 
-bool Board::checkmate(const Piece::Color color)
+Board::GameState Board::getGameState(const Piece::Color color, const std::vector<Move>& possibleMoves)
 {
 	// Check if the king is in check or not
-	if (!this->isInCheck(color))
-		return false;
+	bool check = this->isInCheck(color);
 
-	// Get all possible moves
-	std::vector<Move> moves = this->getMoves(color);
-
-	// Check each move and if the king gets out of check after it then it is not checkmate
-	for (Move move : moves)
+	// Check each move and if the king is not in check after it then the game is not finished
+	for (Move move : possibleMoves)
 	{
 		// Make the move on the board
 		this->makeMove(move);
 
-		// Check if the king escaped check
+		// Check if the king is not in check
 		if (!this->isInCheck(color))
 		{
 			// If so, undo the move and return false
 			this->undoMove();
-			return false;
+			return GameState::UNFINISHED;
 		}
 		
-		// If this line is reached then the current move did not get the king out of check and has to be undone
+		// If this line is reached then the current move got the king in check and has to be undone
 		this->undoMove();
 	}
 
-	// Return true if no move got the king out of check
-	return true;
+	// If this line was reached then all possible moves get the king in check
+	if (check)
+		return GameState::CHECKMATE; // If the king is already in check himself then it is checkmate
+	return GameState::STALEMATE; // Otherwise it is stalemate as there are no legal moves but there is no check
 }
 
 std::vector<Move> Board::getMoves(const Piece::Color playerColor) const
@@ -833,6 +893,8 @@ std::vector<Move> Board::getMoves(const Piece::Color playerColor) const
 			break;
 		}
 	}
+
+	std::sort(moves.begin(), moves.end(), [&](const Move& a, const Move& b) { return this->compareMoves(a, b); });
 
 	return moves;
 }
@@ -876,17 +938,21 @@ void Board::castle(const Move move)
 
 	// Remove the king from his position
 	this->removePiece(king);
+	this->applyChangeToZobristHash(king);
 
 	// Create a new king piece at the target position with hasMoved = true
 	Piece movedKing = Piece(king.getType(), king.getColor(), kingTargetPosition, true);
 	this->addPiece(movedKing);
+	this->applyChangeToZobristHash(movedKing);
 
 	// Remove the rook from his position
 	this->removePiece(rook);
+	this->applyChangeToZobristHash(rook);
 
 	// Create a new rook piece at the target position with hasMoved = true
 	Piece movedRook = Piece(rook.getType(), rook.getColor(), rookTargetPosition, true);
 	this->addPiece(movedRook);
+	this->applyChangeToZobristHash(movedRook);
 
 	// Add a separator at the end of the move
 	this->actionsMade.push(Action::SEPARATOR);
@@ -900,16 +966,406 @@ void Board::enPassant(const Move move)
 
 	// Remove the captured pawn below targetPosition
 	Position positionToCapture = (pawn.getColor() == Piece::Color::WHITE) ? targetPosition.Down() : targetPosition.Up();
-	this->removePiece(this->getPiece(positionToCapture));
+	Piece pawnToBeCaptured = this->getPiece(positionToCapture);
+	this->removePiece(pawnToBeCaptured);
+	this->applyChangeToZobristHash(pawnToBeCaptured);
 
 	// Remove the pawn from its initial position
 	this->removePiece(pawn);
+	this->applyChangeToZobristHash(pawn);
 
 	// Create a new pawn piece at the target position with hasMoved = true
 	Piece movedPawn = Piece(pawn.getType(), pawn.getColor(), targetPosition, true);
 	this->addPiece(movedPawn);
+	this->applyChangeToZobristHash(movedPawn);
 
 	this->actionsMade.push(Action::SEPARATOR);
+}
+
+bool Board::compareMoves(const Move& firstMove, const Move& secondMove) const
+{
+	// Check if the first move is the one stored in the transposition table for the current state of the board
+	if (firstMove == this->transpositionTable[this->getZobristHash()].move)
+		return true;
+
+	// Check if the second move is the one stored in the transposition table for the current state of the board
+	if (secondMove == this->transpositionTable[this->getZobristHash()].move)
+		return false;
+
+	// Check if the first move is the best one from the previous depth
+	if (firstMove == this->bestMoveForPreviousDepth)
+		return true;
+
+	// Check if the second move is the best one from the previous depth
+	if (secondMove == this->bestMoveForPreviousDepth)
+		return false;
+
+	Position firstTargetPosition = firstMove.getTargetPosition();
+	Position secondTargetPosition = secondMove.getTargetPosition();
+
+	Piece::Type firstCapturedPieceType = this->getPiece(firstTargetPosition).getType();
+	Piece::Type secondCapturedPieceType = this->getPiece(secondTargetPosition).getType();
+
+	if (pieceValue[firstCapturedPieceType] > pieceValue[secondCapturedPieceType]) // Check if the first move captures a more valuable piece than the second move does
+		return true;
+
+	Position firstInitialPosition = firstMove.getInitialPosition();
+	Position secondInitialPosition = secondMove.getInitialPosition();
+
+	Piece::Type firstPieceType = this->getPiece(firstInitialPosition).getType();
+	Piece::Type secondPieceType = this->getPiece(secondInitialPosition).getType();
+
+	if (pieceValue[firstCapturedPieceType] == pieceValue[secondCapturedPieceType]) // In case of equal captures
+		if (pieceValue[firstPieceType] < pieceValue[secondPieceType]) // Check if the capturing piece of the first move is less valuable than the one of the second move
+			return true;
+
+	if (pieceValue[firstCapturedPieceType] == pieceValue[secondCapturedPieceType]) // In case of equal captures
+		if (pieceValue[firstPieceType] == pieceValue[secondPieceType]) // And equal pieces
+		{
+			// Check if the first move gains a higher positional advantage then the second one
+			int firstDifference = 0;
+			int secondDifference = 0;
+			Piece::Color color = this->getPiece(firstInitialPosition).getColor();
+
+			if (color == Piece::Color::WHITE)
+			{
+				firstDifference = positionValue[firstPieceType][firstTargetPosition.row()][firstTargetPosition.column()] - positionValue[firstPieceType][firstInitialPosition.row()][firstInitialPosition.column()];
+				secondDifference = positionValue[secondPieceType][secondTargetPosition.row()][secondTargetPosition.column()] - positionValue[secondPieceType][secondInitialPosition.row()][secondInitialPosition.column()];
+			}
+			else
+			{
+				firstDifference = positionValue[firstPieceType][7 - firstTargetPosition.row()][firstTargetPosition.column()] - positionValue[firstPieceType][7 - firstInitialPosition.row()][firstInitialPosition.column()];
+				secondDifference = positionValue[secondPieceType][7 -secondTargetPosition.row()][secondTargetPosition.column()] - positionValue[secondPieceType][7 - secondInitialPosition.row()][secondInitialPosition.column()];
+			}
+
+			if (firstDifference > secondDifference)
+				return true;
+		}
+
+	return false;
+}
+
+bool Board::isValid(const Move move, const Piece::Color playerToMove)
+{
+	Position initialPosition = move.getInitialPosition();
+	Position targetPosition = move.getTargetPosition();
+
+	// Check if the move is empty
+	if (initialPosition == targetPosition)
+		return false;
+
+	Piece pieceToMove = this->getPiece(initialPosition);
+
+	// Check if the color of the moving piece is correct
+	if (pieceToMove.getColor() != playerToMove)
+		return false;
+
+	Piece pieceToBeCaptured = this->getPiece(targetPosition);
+
+	// Check if the color of the captured piece is correct
+	if (pieceToBeCaptured.getColor() == playerToMove)
+		return false;
+
+	// Check if the captured piece is a king
+	if (pieceToBeCaptured.getType() == Piece::Type::KING)
+		return false;
+	
+	if (pieceToMove.getType() == Piece::Type::NONE)
+	{
+		return false;
+	}
+
+	if (pieceToMove.getType() == Piece::Type::PAWN)
+	{
+		if (pieceToMove.getColor() == Piece::Color::WHITE)
+		{
+			if (targetPosition == initialPosition.Up())
+			{
+				// Square has to be empty
+				if (pieceToBeCaptured.getType() != Piece::Type::NONE)
+					return false;
+			}
+			else if (targetPosition == initialPosition.Up().Up())
+			{
+				// The pawn must be on its first move
+				if (pieceToMove.hasMoved())
+					return false;
+				
+				// The square must be empty
+				if (pieceToBeCaptured.getType() != Piece::Type::NONE)
+					return false;
+			}
+			else if (targetPosition == initialPosition.UpLeft() || targetPosition == initialPosition.UpRight())
+			{
+				// Check for en passant
+				if (pieceToBeCaptured.getType() == Piece::Type::NONE)
+				{
+					// En passant with a white pawn only takes place when it is on row 3
+					if (pieceToMove.getPosition().row() != 3)
+						return false;
+
+					Piece lastRemovedPiece = this->removedPieces.top();
+					Piece lastAddedPiece = this->addedPieces.top();
+
+					// Check if the last moved piece is a pawn
+					if (!(lastRemovedPiece.getType() == Piece::Type::PAWN && lastAddedPiece.getType() == Piece::Type::PAWN))
+						return false;
+					
+					// Check if the pawn moved 2 pieces forward
+					if (!(!lastRemovedPiece.hasMoved() && lastAddedPiece.getPosition() == targetPosition.Down()))
+						return false;
+				}
+			}
+			else
+			{
+				return false;
+			}
+		}
+		else
+		{
+			if (targetPosition == initialPosition.Down())
+			{
+				// Square has to be empty
+				if (pieceToBeCaptured.getType() != Piece::Type::NONE)
+					return false;
+			}
+			else if (targetPosition == initialPosition.Down().Down())
+			{
+				// The pawn must be on its first move
+				if (pieceToMove.hasMoved())
+					return false;
+
+				// The square must be empty
+				if (pieceToBeCaptured.getType() != Piece::Type::NONE)
+					return false;
+			}
+			else if (targetPosition == initialPosition.DownLeft() || targetPosition == initialPosition.DownRight())
+			{
+				// Check for en passant
+				if (pieceToBeCaptured.getType() == Piece::Type::NONE)
+				{
+					// En passant with a black pawn only takes place when it is on row 4
+					if (pieceToMove.getPosition().row() != 4)
+						return false;
+
+					Piece lastRemovedPiece = this->removedPieces.top();
+					Piece lastAddedPiece = this->addedPieces.top();
+
+					// Check if the last moved piece is a pawn
+					if (!(lastRemovedPiece.getType() == Piece::Type::PAWN && lastAddedPiece.getType() == Piece::Type::PAWN))
+						return false;
+
+					// Check if the pawn moved 2 pieces forward
+					if (!(!lastRemovedPiece.hasMoved() && lastAddedPiece.getPosition() == targetPosition.Up()))
+						return false;
+				}
+			}
+			else
+			{
+				return false;
+			}
+		}
+	}
+
+	if (pieceToMove.getType() == Piece::Type::BISHOP)
+	{
+		int rowDifference = targetPosition.row() - initialPosition.row();
+		int columnDifference = targetPosition.column() - initialPosition.column();
+
+		// Make sure the initial position and target position are on the same diagonal
+		if (abs(rowDifference) != abs(columnDifference))
+			return false;
+
+		// Make sure the positions are not the same
+		if (rowDifference == 0)
+			return false;
+
+		int absDifference = abs(rowDifference);
+		Position direction(rowDifference / absDifference, columnDifference / absDifference);
+
+		// Check if there is any piece between the initial position and the target position
+		Position positionToCheck = initialPosition + direction;
+		while (positionToCheck != targetPosition)
+		{
+			if (this->getPiece(positionToCheck).getType() != Piece::Type::NONE)
+				return false;
+
+			positionToCheck = positionToCheck + direction;
+		}
+	}
+
+	if (pieceToMove.getType() == Piece::Type::ROOK)
+	{
+		int rowDifference = targetPosition.row() - initialPosition.row();
+		int columnDifference = targetPosition.column() - initialPosition.column();
+
+		// Make sure the position are on the same line or column
+		if (rowDifference != 0 && columnDifference != 0)
+			return false;
+
+		// Make sure the positions are not the same
+		if (rowDifference == 0 && columnDifference == 0)
+			return false;
+
+		int absDifference = std::max(abs(rowDifference), abs(columnDifference));
+		Position direction(rowDifference / absDifference, columnDifference / absDifference);
+
+		// Check if there is any piece between the initial position and the target position
+		Position positionToCheck = initialPosition + direction;
+		while (positionToCheck != targetPosition)
+		{
+			if (this->getPiece(positionToCheck).getType() != Piece::Type::NONE)
+				return false;
+
+			positionToCheck = positionToCheck + direction;
+		}
+	}
+
+	if (pieceToMove.getType() == Piece::Type::QUEEN)
+	{
+		int rowDifference = targetPosition.row() - initialPosition.row();
+		int columnDifference = targetPosition.column() - initialPosition.column();
+
+		Position direction;
+
+		if (abs(rowDifference) == abs(columnDifference))
+		{
+			int absDifference = abs(rowDifference);
+			direction = Position(rowDifference / absDifference, columnDifference / absDifference);
+		}
+		else if (rowDifference == 0 || columnDifference == 0)
+		{
+			int absDifference = std::max(abs(rowDifference), abs(columnDifference));
+			direction = Position(rowDifference / absDifference, columnDifference / absDifference);
+		}
+		else
+		{
+			return false;
+		}
+
+		// Check if there is any piece between the initial position and the target position
+		Position positionToCheck = initialPosition + direction;
+		while (positionToCheck != targetPosition)
+		{
+			if (this->getPiece(positionToCheck).getType() != Piece::Type::NONE)
+				return false;
+
+			positionToCheck = positionToCheck + direction;
+		}
+	}
+
+	if (pieceToMove.getType() == Piece::Type::KNIGHT)
+	{
+		int rowDifference = targetPosition.row() - initialPosition.row();
+		int columnDifference = targetPosition.column() - initialPosition.column();
+
+		// Check if the move is an "L move"
+		if (!((abs(rowDifference) == 2 && abs(columnDifference) == 1) || (abs(rowDifference) == 1 && abs(columnDifference) == 2)))
+			return false;
+
+		// Check if the target square is available
+		if (!this->availableSquare(playerToMove, targetPosition.row(), targetPosition.column()))
+			return false;
+	}
+
+	if (pieceToMove.getType() == Piece::Type::KING)
+	{
+		int rowDifference = targetPosition.row() - initialPosition.row();
+		int columnDifference = targetPosition.column() - initialPosition.column();
+
+		// The king cannot move more than one row per move
+		if (abs(rowDifference) > 1)
+			return false;
+
+		// A king can only move 1 column per move except when it casltes (2 columns)
+		if (abs(columnDifference) > 2)
+			return false;
+
+		// Castle case
+		if (abs(columnDifference) == 2)
+		{
+			// The king cannot castle if it has already moved
+			if (pieceToMove.hasMoved())
+				return false;
+
+			if (columnDifference == 2)
+			{
+				Piece possibleRook = this->getPiece(Position(initialPosition.row(), 7));
+
+				if (possibleRook.getType() == Piece::Type::ROOK && !possibleRook.hasMoved())
+				{
+					bool canCastle = true;
+
+					// Check if the square between the king and the rook are empty
+					for (int columnToCheck = initialPosition.column() + 1; columnToCheck < 7 && canCastle; columnToCheck++)
+						if (this->board[initialPosition.row()][columnToCheck].getType() != Piece::Type::NONE)
+							canCastle = false;
+
+					// Check if the squares the king would travel are attacked by the other color
+					Piece::Color otherColor = playerToMove == Piece::Color::WHITE ? Piece::Color::BLACK : Piece::Color::WHITE;
+					for (int columnToCheck = initialPosition.column(); columnToCheck <= initialPosition.column() + 2 && canCastle; columnToCheck++)
+						if (this->isAttackedBy(Position(initialPosition.row(), columnToCheck), otherColor))
+							canCastle = false;
+
+					if (!canCastle)
+						return false;
+				}
+				else
+				{
+					return false;
+				}
+			}
+			else
+			{
+				Piece possibleRook = this->getPiece(Position(initialPosition.row(), 0));
+
+				if (possibleRook.getType() == Piece::Type::ROOK && !possibleRook.hasMoved())
+				{
+					bool canCastle = true;
+
+					// Check if the square between the king and the rook are empty
+					for (int columnToCheck = 1; columnToCheck < initialPosition.column() && canCastle; columnToCheck++)
+						if (this->board[initialPosition.row()][columnToCheck].getType() != Piece::Type::NONE)
+							canCastle = false;
+
+					// Check if the squares the king would travel are attacked by the other color
+					Piece::Color otherColor = playerToMove == Piece::Color::WHITE ? Piece::Color::BLACK : Piece::Color::WHITE;
+					for (int columnToCheck = initialPosition.column() - 2; columnToCheck <= initialPosition.column() && canCastle; columnToCheck++)
+						if (this->isAttackedBy(Position(initialPosition.row(), columnToCheck), otherColor))
+							canCastle = false;
+
+					if (!canCastle)
+						return false;
+				}
+				else
+				{
+					return false;
+				}
+			}
+		}
+	}
+
+	// Check if the current move would put the king in check
+	this->makeMove(move);
+	bool kingInCheck = this->isInCheck(playerToMove);
+	this->undoMove();
+
+	return !kingInCheck;
+}
+
+void Board::passTheTurn()
+{
+	this->zobristHash = this->zobristHash ^ this->blackToMoveZobristValue;
+}
+
+int Board::getZobristHash() const
+{
+	return this->zobristHash % this->transpositionTableSize;
+}
+
+void Board::applyChangeToZobristHash(const Piece piece)
+{
+	this->zobristHash = this->zobristHash ^ this->zobristValues[getColorIndex(piece.getColor())][piece.getType()][piece.getPosition().row()][piece.getPosition().column()];
 }
 
 void Board::makeMove(const Move move)
@@ -952,16 +1408,19 @@ void Board::makeMove(const Move move)
 	if (pieceToGetCaptured.getType() != Piece::Type::NONE)
 	{
 		this->removePiece(pieceToGetCaptured);
+		this->applyChangeToZobristHash(pieceToGetCaptured);
 	}
 
 	// Remove the piece to move from its square
 	this->removePiece(pieceToMove);
+	this->applyChangeToZobristHash(pieceToMove);
 
 	// Add the piece to move to the target square
 	Piece movedPiece = Piece(pieceToMove.getType(), pieceToMove.getColor(), targetPosition, true); // Get a new piece with correct position and hasMoved
 	if (move.getPromotionType() != Piece::Type::NONE && pieceToMove.getType() == Piece::Type::PAWN) // Check if the move is a pawn promotion
 		movedPiece.setType(move.getPromotionType());
 	this->addPiece(movedPiece);
+	this->applyChangeToZobristHash(movedPiece);
 
 	// Add a separator to the stack to mark the end of the move
 	this->actionsMade.push(Action::SEPARATOR);
@@ -993,6 +1452,7 @@ void Board::undoMove()
 
 			// Add the piece back with silent = true to avoid modifying the helper stacks
 			this->addPiece(removedPiece, true);
+			this->applyChangeToZobristHash(removedPiece);
 		}
 		else if (action == Action::ADD_PIECE)
 		{
@@ -1002,6 +1462,7 @@ void Board::undoMove()
 
 			// Remove the piece with silent = true to avoid modifying the helper stacks
 			this->removePiece(addedPiece, true);
+			this->applyChangeToZobristHash(addedPiece);
 		}
 	}
 }
@@ -1009,64 +1470,124 @@ void Board::undoMove()
 // Compute the value of the current state of the board (positive values are better for white and negative values are better for black)
 int Board::evaluate() const
 {
-	int result = 0;
-
-	for (int colorIndex = 0; colorIndex < 2; colorIndex++) // 0 for white and 1 for black
-		for (Position position : this->occupiedSquares[colorIndex])
-		{
-			int row = position.row();
-			int column = position.column();
-
-			int pieceType = this->board[row][column].getType();
-			int pieceColor = this->board[row][column].getColor();
-
-			int squareValue = pieceValue[pieceType]; // Initialize the value of the square with the value of the piece belonging to that square
-
-			if (pieceColor == Piece::Color::BLACK)
-			{
-				// The position value table must be inverted for black pieces
-				squareValue += positionValue[pieceType][7 - row][column];
-
-				// The value of the square is negative for black pieces
-				squareValue = -squareValue;
-			}
-			else
-			{
-				// Simply add the positional value for a white piece
-				squareValue += positionValue[pieceType][row][column];
-			}
-
-			result += squareValue;
-		}
-
-	return result;
+	return this->evaluation;
 }
 
 Move Board::getBestMove(const Piece::Color playerToMove)
 {
-	return this->minimax(searchDepth, INT_MIN, INT_MAX, playerToMove == Piece::Color::WHITE).move;
+	Move result = Move();
+	this->bestMoveForPreviousDepth = Move();
+	this->stopSearch.store(false);
+
+	// Function for the search thread
+	auto searchForBestMove = [this](const Piece::Color playerToMove, Move& result)
+		{
+			// Time at the start of the search
+			auto start = std::chrono::high_resolution_clock::now();
+
+			// Search until the depth limit has been reached or until notified the time limit has exceeded
+			for (int depth = 1; depth <= maxSearchDepth && !this->stopSearch.load(); depth++)
+			{
+				// Store the result from the minimax algorith for the current depth
+				auto possibleResult = this->minimax(depth, INT_MIN, INT_MAX, playerToMove == Piece::Color::WHITE).move;
+
+				// Check if the minimax search was stopped abruptly because of the time limit
+				if (!this->stopSearch.load())
+				{
+					// If not then store the result
+					result = possibleResult;
+					this->bestMoveForPreviousDepth = result;
+
+					// Compute time to search to current depth and display it
+					auto stop = std::chrono::high_resolution_clock::now();
+					auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+					std::cout << "Depth " << depth << " reached in " << duration.count() << "ms\n";
+				}
+			}
+
+			// Notify that the search has stopped
+			this->stopSearch.store(true);
+		};
+
+	// Start a new thread that runs the search
+	std::thread searchThread(searchForBestMove, playerToMove, std::ref(result));
+	
+	// Wait for the other thread to search the best move until the time limit is exceeded
+	auto start = std::chrono::high_resolution_clock::now();
+	while (std::chrono::duration_cast<std::chrono::seconds>(std::chrono::high_resolution_clock::now() - start).count() < searchTime)
+	{
+		// If the search has already reached the depth limit then stop waiting
+		if (this->stopSearch.load())
+			break;
+
+		// Sleep for a very short amount of time
+		std::this_thread::sleep_for(std::chrono::milliseconds(50));
+	}
+
+	// Notify the other thread to stop the search once the time limit is exceeded
+	this->stopSearch.store(true);
+
+	searchThread.join();
+
+	return result;
 }
 
 Board::minimaxResult Board::minimax(int depth, int alpha, int beta, const bool whiteToMove)
 {
-	// Check if the game is over
-	if (this->checkmate(whiteToMove ? Piece::Color::WHITE : Piece::Color::BLACK))
+	// Check if the search should be stopped
+	if (this->stopSearch.load())
+		return Board::minimaxResult(Move(), 0);
+
+	// Check if the move for this board state has already been computed
+	if (this->transpositionTable[this->getZobristHash()].depth >= depth)
+	{
+		Board::TranspositionTableEntry tableEntry = this->transpositionTable[this->getZobristHash()];
+
+		// Check if the result of the move stored in the transposition table is exact or not (if not continue the search)
+		if (tableEntry.exact)
+		{
+			Piece::Color currentPlayer = whiteToMove ? Piece::Color::WHITE : Piece::Color::BLACK;
+			if (this->isValid(tableEntry.move, currentPlayer))
+				return Board::minimaxResult(tableEntry.move, tableEntry.evaluation, tableEntry.exact);
+		}
+	}
+
+	// Get all the possible moves of the current player
+	std::vector<Move> moves = this->getMoves(whiteToMove ? Piece::Color::WHITE : Piece::Color::BLACK);
+
+	// Get the current state of the game
+	GameState gameState = this->getGameState(whiteToMove ? Piece::Color::WHITE : Piece::Color::BLACK, moves);
+	
+	// Check for checkmate
+	if (gameState == GameState::CHECKMATE) // TODO Choose the fastest mate
 		return whiteToMove ? Board::minimaxResult(Move(), INT_MIN + 1) : Board::minimaxResult(Move(), INT_MAX - 1);
+	
+	// Check for stalemate
+	if (gameState == GameState::STALEMATE)
+		return Board::minimaxResult(Move(), 0);
 
 	if (depth == 0)
 		return Board::minimaxResult(Move(), this->evaluate());
+
+	int originalAlpha = alpha;
 
 	if (whiteToMove)
 	{
 		// Initialize the result with an empty move and the smallest possible value
 		Board::minimaxResult result(Move(), INT_MIN);
 
-		// Get all the possible moves of the white player
-		std::vector<Move> moves = this->getMoves(Piece::Color::WHITE);
+		// Reset the best move from the previous depth if we already used it to avoid affecting move generation at deeper game tree levels
+		if (!moves.empty() && moves.front() == this->bestMoveForPreviousDepth)
+			this->bestMoveForPreviousDepth = Move();
 
 		for (Move move : moves)
 		{
+			// Check if the search should be stopped before making the current move
+			if (this->stopSearch.load())
+				return Board::minimaxResult(Move(), 0);
+
 			this->makeMove(move); // Make the current move
+			this->passTheTurn(); // Change the player
 
 			if (!this->isInCheck(Piece::Color::WHITE)) // Check if the move is valid
 			{
@@ -1080,11 +1601,21 @@ Board::minimaxResult Board::minimax(int depth, int alpha, int beta, const bool w
 			}
 
 			this->undoMove(); // Undo the current move to bring the table back to its original state
+			this->passTheTurn(); // Return to the original player
 
 			if (beta <= alpha)
 				break;
 		}
 
+		// Check if the search should be stopped
+		if (this->stopSearch.load())
+			return Board::minimaxResult(Move(), 0);
+
+		// Store the found move in the transposition table
+		if (depth >= this->transpositionTable[this->getZobristHash()].depth)
+			this->transpositionTable[this->getZobristHash()] = Board::TranspositionTableEntry(result.move, depth, result.value, result.exact);
+
+		// Return the result
 		return result;
 	}
 	else
@@ -1092,12 +1623,18 @@ Board::minimaxResult Board::minimax(int depth, int alpha, int beta, const bool w
 		// Initialize the result with an empty move and the biggest possible value
 		Board::minimaxResult result(Move(), INT_MAX);
 
-		// Get all the possible moves of the black player
-		std::vector<Move> moves = this->getMoves(Piece::Color::BLACK);
+		// Reset the best move from the previous depth if we already used it to avoid affecting move generation at deeper game tree levels
+		if (!moves.empty() && moves.front() == this->bestMoveForPreviousDepth)
+			this->bestMoveForPreviousDepth = Move();
 
 		for (Move move : moves)
 		{
+			// Check if the search should be stopped before making the current move
+			if (this->stopSearch.load())
+				return Board::minimaxResult(Move(), 0);
+
 			this->makeMove(move); // Make the current move
+			this->passTheTurn(); // Change the player
 
 			if (!this->isInCheck(Piece::Color::BLACK)) // Check if the move is valid
 			{
@@ -1111,11 +1648,26 @@ Board::minimaxResult Board::minimax(int depth, int alpha, int beta, const bool w
 			}
 
 			this->undoMove(); // Undo the current move to bring the table back to its original state
+			this->passTheTurn(); // Return to the original player
 
 			if (beta <= alpha)
 				break;
 		}
 
+		// Check if the search should be stopped
+		if (this->stopSearch.load())
+			return Board::minimaxResult(Move(), 0);
+
+		if (originalAlpha < result.value && result.value < beta)
+			result.exact = true;
+		else
+			result.exact = false;
+
+		// Store the found move in the transposition table
+		if (depth >= this->transpositionTable[this->getZobristHash()].depth)
+			this->transpositionTable[this->getZobristHash()] = Board::TranspositionTableEntry(result.move, depth, result.value, result.exact);
+
+		// Return the result
 		return result;
 	}
 }
@@ -1176,4 +1728,8 @@ std::string Board::attackedSquaresToString(const Piece::Color color) const
 	return boardString;
 }
 
-Board::minimaxResult::minimaxResult(const Move move, const int value) : move(move), value(value) {}
+Board::minimaxResult::minimaxResult(const Move move, const int value, const int exact) : move(move), value(value), exact(exact) {}
+
+Board::TranspositionTableEntry::TranspositionTableEntry() : move(Move()), depth(0), evaluation(0), exact(false) {}
+
+Board::TranspositionTableEntry::TranspositionTableEntry(const Move move, const int depth, const int evaluation, const int exact) : move(move), depth(depth), evaluation(evaluation), exact(exact) {}

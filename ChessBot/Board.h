@@ -3,6 +3,7 @@
 #include <stack>
 #include <set>
 #include <string>
+#include <atomic>
 #include "Piece.h"
 #include "Move.h"
 
@@ -16,8 +17,27 @@ private:
 		Move move;
 		// The evaluation value return by the minimax algorithm
 		int value;
+		// Bool value that indicates the type of node that will be stored in the transposition table
+		bool exact;
 		// Construct a minimax result given a move and an evaluation value
-		minimaxResult(const Move move, const int value);
+		minimaxResult(const Move move, const int value, const int exact = true);
+	};
+
+	class TranspositionTableEntry
+	{
+	public:
+		// The stored move (the best move found so far for the state the board is in)
+		Move move;
+		// The depth of the search that found the stored move
+		int depth;
+		// The evaluation of the board corresponding to the stored move
+		int evaluation;
+		// Bool value that indicates the type of node stored in the transposition table
+		bool exact;
+		// Construct an empty transposition table entry
+		TranspositionTableEntry();
+		// Construct a transposition table entry given a move and a depth
+		TranspositionTableEntry(const Move move, const int depth, const int evaluation, const int exact);
 	};
 
 	// Enum for all possible actions performed on the board
@@ -26,6 +46,14 @@ private:
 		SEPARATOR = 0,
 		REMOVE_PIECE = 1,
 		ADD_PIECE = 2,
+	};
+
+	// Enum for all possible game states
+	enum GameState
+	{
+		UNFINISHED = 0,
+		CHECKMATE = 1,
+		STALEMATE = 2
 	};
 
 	// Array that represents the current state of the board
@@ -89,8 +117,8 @@ private:
 	// Returns true if the king of given color is in check, false otherwise
 	bool isInCheck(const Piece::Color color) const;
 
-	//Returns true if the player of the given color is checkmated, false otherwise
-	bool checkmate(const Piece::Color color);
+	// Returns true if the player of the given color is checkmated, false otherwise
+	GameState getGameState(const Piece::Color color, const std::vector<Move>& possibleMoves);
 
 
 	// Special case of makeMove for handling castles
@@ -100,8 +128,55 @@ private:
 	void enPassant(const Move move);
 
 
-	// The depth of the move search
-	static const int searchDepth = 5;
+	// The move stored in the transposition table for the current state of the board
+	Move transpositionTableMove;
+
+	// Function to compare probable move value
+	bool compareMoves(const Move& firstMove, const Move& secondMove) const;
+
+	// Checks if a move is valid or not
+	bool isValid(const Move move, const Piece::Color playerToMove);
+
+
+	// Value of the zobrist hash for the current state of the table;
+	uint64_t zobristHash;
+
+	// Zobrist hash values for each type of piece of each color on every possible square
+	uint64_t zobristValues[2][7][8][8];
+
+	// Zorbist hash value for the player turn
+	uint64_t blackToMoveZobristValue;
+
+	// Pass the turn to the other player and update the hash accordingly
+	void passTheTurn();
+
+	// The size of the transposition table
+	int transpositionTableSize = 16777213;
+
+	// Get an index that fits in the transposition table
+	int getZobristHash() const;
+
+	// Transposition table used for storing already searched moves
+	std::vector<TranspositionTableEntry> transpositionTable;
+
+	// Change the current hash of the board according to adding or removing the given piece
+	void applyChangeToZobristHash(const Piece piece);
+
+
+	// Value used for board evaluation
+	int evaluation;
+
+	// Number of seconds available for searching the best move
+	static const int searchTime = 10;
+
+	// Bool value to notify the search time has been exceeded
+	std::atomic<bool> stopSearch{ false };
+	
+	// The move found by the minimax algorithm using the previous depth (used for iterative deepening)
+	Move bestMoveForPreviousDepth;
+
+	// The maximum depth of the move search
+	static const int maxSearchDepth = 100;
 
 	// Minimax algorithm that searches for the best possible move
 	minimaxResult minimax(int depth, int alpha, int beta, const bool whiteToMove);

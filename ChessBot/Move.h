@@ -28,6 +28,9 @@ public:
 	// Set the type of piece the pawn is promoting to
 	void setPromotionType(const Piece::Type newPromotionType);
 
+	// Returns true if positions and promotion type are the same, false otherwise
+	bool operator ==(const Move& other) const;
+
 	// Compute a string to describe the current move
 	std::string toString() const;
 };

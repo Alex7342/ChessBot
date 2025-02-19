@@ -65,6 +65,16 @@ bool Position::operator==(const Position& other) const
     return this->_row == other._row && this->_column == other._column;
 }
 
+bool Position::operator!=(const Position& other) const
+{
+    return this->_row != other._row || this->_column != other._column;
+}
+
+Position Position::operator+(const Position& other)
+{
+    return Position(this->_row + other._row, this->_column + other._column);
+}
+
 bool Position::operator<(const Position& other) const
 {
     return this->_row < other._row || (this->_row == other._row && this->_column < other._column);

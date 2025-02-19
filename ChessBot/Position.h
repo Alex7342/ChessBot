@@ -40,6 +40,10 @@ public:
 	// Check if the position have the same row and the same column
 	bool operator ==(const Position& other) const;
 
+	bool operator !=(const Position& other) const;
+
+	Position operator +(const Position& other);
+
 	// Check if this position has a smaller row than the other or if it has the same row and a smaller column
 	bool operator <(const Position& other) const;
 };
