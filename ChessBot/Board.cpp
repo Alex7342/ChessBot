@@ -1548,7 +1548,7 @@ Board::minimaxResult Board::minimax(int depth, int alpha, int beta, const bool w
 		{
 			Piece::Color currentPlayer = whiteToMove ? Piece::Color::WHITE : Piece::Color::BLACK;
 			if (this->isValid(tableEntry.move, currentPlayer))
-				return Board::minimaxResult(tableEntry.move, tableEntry.evaluation);
+				return Board::minimaxResult(tableEntry.move, tableEntry.evaluation, tableEntry.exact);
 		}
 	}
 
@@ -1559,7 +1559,7 @@ Board::minimaxResult Board::minimax(int depth, int alpha, int beta, const bool w
 	GameState gameState = this->getGameState(whiteToMove ? Piece::Color::WHITE : Piece::Color::BLACK, moves);
 	
 	// Check for checkmate
-	if (gameState == GameState::CHECKMATE)
+	if (gameState == GameState::CHECKMATE) // TODO Choose the fastest mate
 		return whiteToMove ? Board::minimaxResult(Move(), INT_MIN + 1) : Board::minimaxResult(Move(), INT_MAX - 1);
 	
 	// Check for stalemate
@@ -1568,6 +1568,8 @@ Board::minimaxResult Board::minimax(int depth, int alpha, int beta, const bool w
 
 	if (depth == 0)
 		return Board::minimaxResult(Move(), this->evaluate());
+
+	int originalAlpha = alpha;
 
 	if (whiteToMove)
 	{
@@ -1594,7 +1596,6 @@ Board::minimaxResult Board::minimax(int depth, int alpha, int beta, const bool w
 				{
 					result.move = move;
 					result.value = child.value;
-					result.exact = child.exact;
 				}
 				alpha = std::max(alpha, child.value);
 			}
@@ -1603,10 +1604,7 @@ Board::minimaxResult Board::minimax(int depth, int alpha, int beta, const bool w
 			this->passTheTurn(); // Return to the original player
 
 			if (beta <= alpha)
-			{
-				result.exact = false;
 				break;
-			}
 		}
 
 		// Check if the search should be stopped
@@ -1645,7 +1643,6 @@ Board::minimaxResult Board::minimax(int depth, int alpha, int beta, const bool w
 				{
 					result.move = move;
 					result.value = child.value;
-					result.exact = child.exact;
 				}
 				beta = std::min(beta, child.value);
 			}
@@ -1654,15 +1651,17 @@ Board::minimaxResult Board::minimax(int depth, int alpha, int beta, const bool w
 			this->passTheTurn(); // Return to the original player
 
 			if (beta <= alpha)
-			{
-				result.exact = false;
 				break;
-			}
 		}
 
 		// Check if the search should be stopped
 		if (this->stopSearch.load())
 			return Board::minimaxResult(Move(), 0);
+
+		if (originalAlpha < result.value && result.value < beta)
+			result.exact = true;
+		else
+			result.exact = false;
 
 		// Store the found move in the transposition table
 		if (depth >= this->transpositionTable[this->getZobristHash()].depth)
