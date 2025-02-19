@@ -984,6 +984,14 @@ void Board::enPassant(const Move move)
 
 bool Board::compareMoves(const Move& firstMove, const Move& secondMove) const
 {
+	// Check if the first move is the one stored in the transposition table for the current state of the board
+	if (firstMove == this->transpositionTable[this->getZobristHash()].move)
+		return true;
+
+	// Check if the second move is the one stored in the transposition table for the current state of the board
+	if (secondMove == this->transpositionTable[this->getZobristHash()].move)
+		return false;
+
 	// Check if the first move is the best one from the previous depth
 	if (firstMove == this->bestMoveForPreviousDepth)
 		return true;
@@ -1062,7 +1070,6 @@ bool Board::isValid(const Move move, const Piece::Color playerToMove)
 	if (pieceToBeCaptured.getType() == Piece::Type::KING)
 		return false;
 	
-	// TODO Check if the move is possible for each type of piece
 	if (pieceToMove.getType() == Piece::Type::NONE)
 	{
 		return false;
@@ -1351,7 +1358,7 @@ void Board::passTheTurn()
 	this->zobristHash = this->zobristHash ^ this->blackToMoveZobristValue;
 }
 
-int Board::getZobristHash()
+int Board::getZobristHash() const
 {
 	return this->zobristHash % this->transpositionTableSize;
 }
@@ -1535,10 +1542,14 @@ Board::minimaxResult Board::minimax(int depth, int alpha, int beta, const bool w
 	if (this->transpositionTable[this->getZobristHash()].depth >= depth)
 	{
 		Board::TranspositionTableEntry tableEntry = this->transpositionTable[this->getZobristHash()];
-		Piece::Color currentPlayer = whiteToMove ? Piece::Color::WHITE : Piece::Color::BLACK;
 
-		if (this->isValid(tableEntry.move, currentPlayer))
-			return Board::minimaxResult(tableEntry.move, tableEntry.evaluation);
+		// Check if the result of the move stored in the transposition table is exact or not (if not continue the search)
+		if (tableEntry.exact)
+		{
+			Piece::Color currentPlayer = whiteToMove ? Piece::Color::WHITE : Piece::Color::BLACK;
+			if (this->isValid(tableEntry.move, currentPlayer))
+				return Board::minimaxResult(tableEntry.move, tableEntry.evaluation);
+		}
 	}
 
 	// Get all the possible moves of the current player
@@ -1583,6 +1594,7 @@ Board::minimaxResult Board::minimax(int depth, int alpha, int beta, const bool w
 				{
 					result.move = move;
 					result.value = child.value;
+					result.exact = child.exact;
 				}
 				alpha = std::max(alpha, child.value);
 			}
@@ -1591,7 +1603,10 @@ Board::minimaxResult Board::minimax(int depth, int alpha, int beta, const bool w
 			this->passTheTurn(); // Return to the original player
 
 			if (beta <= alpha)
+			{
+				result.exact = false;
 				break;
+			}
 		}
 
 		// Check if the search should be stopped
@@ -1600,7 +1615,7 @@ Board::minimaxResult Board::minimax(int depth, int alpha, int beta, const bool w
 
 		// Store the found move in the transposition table
 		if (depth >= this->transpositionTable[this->getZobristHash()].depth)
-			this->transpositionTable[this->getZobristHash()] = Board::TranspositionTableEntry(result.move, depth, result.value);
+			this->transpositionTable[this->getZobristHash()] = Board::TranspositionTableEntry(result.move, depth, result.value, result.exact);
 
 		// Return the result
 		return result;
@@ -1630,6 +1645,7 @@ Board::minimaxResult Board::minimax(int depth, int alpha, int beta, const bool w
 				{
 					result.move = move;
 					result.value = child.value;
+					result.exact = child.exact;
 				}
 				beta = std::min(beta, child.value);
 			}
@@ -1638,7 +1654,10 @@ Board::minimaxResult Board::minimax(int depth, int alpha, int beta, const bool w
 			this->passTheTurn(); // Return to the original player
 
 			if (beta <= alpha)
+			{
+				result.exact = false;
 				break;
+			}
 		}
 
 		// Check if the search should be stopped
@@ -1647,7 +1666,7 @@ Board::minimaxResult Board::minimax(int depth, int alpha, int beta, const bool w
 
 		// Store the found move in the transposition table
 		if (depth >= this->transpositionTable[this->getZobristHash()].depth)
-			this->transpositionTable[this->getZobristHash()] = Board::TranspositionTableEntry(result.move, depth, result.value);
+			this->transpositionTable[this->getZobristHash()] = Board::TranspositionTableEntry(result.move, depth, result.value, result.exact);
 
 		// Return the result
 		return result;
@@ -1710,8 +1729,8 @@ std::string Board::attackedSquaresToString(const Piece::Color color) const
 	return boardString;
 }
 
-Board::minimaxResult::minimaxResult(const Move move, const int value) : move(move), value(value) {}
+Board::minimaxResult::minimaxResult(const Move move, const int value, const int exact) : move(move), value(value), exact(exact) {}
 
-Board::TranspositionTableEntry::TranspositionTableEntry() : move(Move()), depth(0) {}
+Board::TranspositionTableEntry::TranspositionTableEntry() : move(Move()), depth(0), evaluation(0), exact(false) {}
 
-Board::TranspositionTableEntry::TranspositionTableEntry(const Move move, const int depth, const int evaluation) : move(move), depth(depth), evaluation(evaluation) {}
+Board::TranspositionTableEntry::TranspositionTableEntry(const Move move, const int depth, const int evaluation, const int exact) : move(move), depth(depth), evaluation(evaluation), exact(exact) {}

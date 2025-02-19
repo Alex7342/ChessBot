@@ -17,8 +17,10 @@ private:
 		Move move;
 		// The evaluation value return by the minimax algorithm
 		int value;
+		// Bool value that indicates the type of node that will be stored in the transposition table
+		bool exact;
 		// Construct a minimax result given a move and an evaluation value
-		minimaxResult(const Move move, const int value);
+		minimaxResult(const Move move, const int value, const int exact = true);
 	};
 
 	class TranspositionTableEntry
@@ -30,10 +32,12 @@ private:
 		int depth;
 		// The evaluation of the board corresponding to the stored move
 		int evaluation;
+		// Bool value that indicates the type of node stored in the transposition table
+		bool exact;
 		// Construct an empty transposition table entry
 		TranspositionTableEntry();
 		// Construct a transposition table entry given a move and a depth
-		TranspositionTableEntry(const Move move, const int depth, const int evaluation);
+		TranspositionTableEntry(const Move move, const int depth, const int evaluation, const int exact);
 	};
 
 	// Enum for all possible actions performed on the board
@@ -123,13 +127,19 @@ private:
 	// Special case of makeMove for handling en passant
 	void enPassant(const Move move);
 
-	
+
+	// The move stored in the transposition table for the current state of the board
+	Move transpositionTableMove;
+
 	// Function to compare probable move value
 	bool compareMoves(const Move& firstMove, const Move& secondMove) const;
 
 	// Checks if a move is valid or not
 	bool isValid(const Move move, const Piece::Color playerToMove);
 
+
+	// Value of the zobrist hash for the current state of the table;
+	uint64_t zobristHash;
 
 	// Zobrist hash values for each type of piece of each color on every possible square
 	uint64_t zobristValues[2][7][8][8];
@@ -144,7 +154,7 @@ private:
 	int transpositionTableSize = 19173949;
 
 	// Get an index that fits in the transposition table
-	int getZobristHash();
+	int getZobristHash() const;
 
 	// Transposition table used for storing already searched moves
 	std::vector<TranspositionTableEntry> transpositionTable;
@@ -172,9 +182,6 @@ private:
 	minimaxResult minimax(int depth, int alpha, int beta, const bool whiteToMove);
 
 public:
-	// Value of the zobrist hash for the current state of the table;
-	uint64_t zobristHash;
-
 	// Construct a board with the default chess setup
 	Board();
 
