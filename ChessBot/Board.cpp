@@ -1489,7 +1489,7 @@ Move Board::getBestMove(const Piece::Color playerToMove)
 			for (int depth = 1; depth <= maxSearchDepth && !this->stopSearch.load(); depth++)
 			{
 				// Store the result from the minimax algorith for the current depth
-				auto possibleResult = this->minimax(depth, INT_MIN, INT_MAX, playerToMove == Piece::Color::WHITE).move;
+				auto possibleResult = this->minimax(depth, 0, INT_MIN, INT_MAX, playerToMove == Piece::Color::WHITE).move;
 
 				// Check if the minimax search was stopped abruptly because of the time limit
 				if (!this->stopSearch.load())
@@ -1532,7 +1532,7 @@ Move Board::getBestMove(const Piece::Color playerToMove)
 	return result;
 }
 
-Board::minimaxResult Board::minimax(int depth, int alpha, int beta, const bool whiteToMove)
+Board::minimaxResult Board::minimax(int depth, int ply, int alpha, int beta, const bool whiteToMove)
 {
 	// Check if the search should be stopped
 	if (this->stopSearch.load())
@@ -1557,10 +1557,10 @@ Board::minimaxResult Board::minimax(int depth, int alpha, int beta, const bool w
 
 	// Get the current state of the game
 	GameState gameState = this->getGameState(whiteToMove ? Piece::Color::WHITE : Piece::Color::BLACK, moves);
-	
+
 	// Check for checkmate
 	if (gameState == GameState::CHECKMATE) // TODO Choose the fastest mate
-		return whiteToMove ? Board::minimaxResult(Move(), INT_MIN + 1) : Board::minimaxResult(Move(), INT_MAX - 1);
+		return whiteToMove ? Board::minimaxResult(Move(), INT_MIN + 1 + ply) : Board::minimaxResult(Move(), INT_MAX - 1 - ply);
 	
 	// Check for stalemate
 	if (gameState == GameState::STALEMATE)
@@ -1591,7 +1591,7 @@ Board::minimaxResult Board::minimax(int depth, int alpha, int beta, const bool w
 
 			if (!this->isInCheck(Piece::Color::WHITE)) // Check if the move is valid
 			{
-				Board::minimaxResult child = this->minimax(depth - 1, alpha, beta, false); // Evaluate the result of the current move and go deeper in the recursion tree
+				Board::minimaxResult child = this->minimax(depth - 1, ply + 1, alpha, beta, false); // Evaluate the result of the current move and go deeper in the recursion tree
 				if (child.value > result.value) // If the current result is better then store it
 				{
 					result.move = move;
@@ -1638,7 +1638,7 @@ Board::minimaxResult Board::minimax(int depth, int alpha, int beta, const bool w
 
 			if (!this->isInCheck(Piece::Color::BLACK)) // Check if the move is valid
 			{
-				Board::minimaxResult child = this->minimax(depth - 1, alpha, beta, true); // Evaluate the result of the current move and go deeper in recursion tree
+				Board::minimaxResult child = this->minimax(depth - 1, ply + 1, alpha, beta, true); // Evaluate the result of the current move and go deeper in recursion tree
 				if (child.value < result.value) // If the current result is better then store it
 				{
 					result.move = move;

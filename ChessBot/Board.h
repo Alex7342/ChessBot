@@ -179,7 +179,7 @@ private:
 	static const int maxSearchDepth = 100;
 
 	// Minimax algorithm that searches for the best possible move
-	minimaxResult minimax(int depth, int alpha, int beta, const bool whiteToMove);
+	minimaxResult minimax(int depth, int ply, int alpha, int beta, const bool whiteToMove);
 
 public:
 	// Construct a board with the default chess setup
