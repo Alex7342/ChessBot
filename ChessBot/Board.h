@@ -166,6 +166,9 @@ private:
 	// Value used for board evaluation
 	int evaluation;
 
+	// Value of all non pawn pieces on the board
+	int nonPawnMaterial;
+
 	// Number of seconds available for searching the best move
 	static const int searchTime = 10;
 

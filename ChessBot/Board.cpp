@@ -65,7 +65,7 @@ Board::Board()
 		for (int j = 0; j < 8; j++)
 			this->board[i][j] = Piece(Piece::Type::NONE, Piece::Color::UNCOLORED, Position(i, j), false);
 
-	// Store all occupied positions
+	// Store all occupied positions and count non pawn material
 	for (int i = 0; i < 8; i++)
 		for (int j = 0; j < 8; j++)
 		{
@@ -75,6 +75,9 @@ Board::Board()
 				int index = getColorIndex(piece.getColor());
 				this->occupiedSquares[index].insert(this->board[i][j].getPosition());
 			}
+
+			if (piece.getType() != Piece::Type::PAWN && piece.getType() != Piece::Type::KING)
+				nonPawnMaterial += pieceValue[piece.getType()];
 		}
 	
 	this->evaluation = 0;
@@ -521,6 +524,10 @@ void Board::addPiece(const Piece piece, const bool silent)
 	}
 
 	this->evaluation += squareValue;
+
+	// Update non pawn material
+	if (piece.getType() != Piece::Type::PAWN && piece.getType() != Piece::Type::KING)
+		this->nonPawnMaterial += pieceValue[piece.getType()];
 }
 
 void Board::removePiece(const Piece piece, const bool silent)
@@ -557,6 +564,10 @@ void Board::removePiece(const Piece piece, const bool silent)
 	}
 
 	this->evaluation -= squareValue;
+
+	// Update non pawn material
+	if (piece.getType() != Piece::Type::PAWN && piece.getType() != Piece::Type::KING)
+		this->nonPawnMaterial -= pieceValue[piece.getType()];
 }
 
 bool Board::isAttackedBy(const Position position, const Piece::Color attackingColor) const
