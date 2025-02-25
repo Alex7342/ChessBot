@@ -77,8 +77,10 @@ Board::Board()
 			}
 
 			if (piece.getType() != Piece::Type::PAWN && piece.getType() != Piece::Type::KING)
-				nonPawnMaterial += pieceValue[piece.getType()];
+				this->nonPawnMaterial += pieceValue[piece.getType()];
 		}
+
+	this->startingNonPawnMaterial = this->nonPawnMaterial;
 	
 	this->evaluation = 0;
 
@@ -511,16 +513,37 @@ void Board::addPiece(const Piece piece, const bool silent)
 
 	if (piece.getColor() == Piece::Color::BLACK)
 	{
-		// The position value table must be inverted for black pieces
-		squareValue += positionValue[piece.getType()][7 - position.row()][position.column()];
+		if (piece.getType() != Piece::Type::KING) // Normal piece
+		{
+			// The position value table must be inverted for black pieces
+			squareValue += positionValue[piece.getType()][7 - position.row()][position.column()];
+		}
+		else // King (weighted positional advantage from middlegame and endgame)
+		{
+			float middlegameWeight = (1.0f * std::max(0, this->nonPawnMaterial - this->endgameTreshold)) / (1.0f * (this->startingNonPawnMaterial - this->nonPawnMaterial));
+			
+			// The position value table must be inverted for black pieces
+			squareValue += middlegameWeight * positionValue[piece.getType()][7 - position.row()][position.column()] +
+				(1.0f - middlegameWeight) * positionValue[piece.getType() + 1][7 - position.row()][position.column()];
+		}
 
 		// The value of the square is negative for black pieces
 		squareValue = -squareValue;
 	}
 	else
 	{
-		// Simply add the positional value for a white piece
-		squareValue += positionValue[piece.getType()][position.row()][position.column()];
+		if (piece.getType() != Piece::Type::KING) // Normal piece
+		{
+			// Simply add the positional value for a white piece
+			squareValue += positionValue[piece.getType()][position.row()][position.column()];
+		}
+		else // King (weighted positional advantage from middlegame and endgame)
+		{
+			float middlegameWeight = (1.0f * std::max(0, this->nonPawnMaterial - this->endgameTreshold)) / (1.0f * (this->startingNonPawnMaterial - this->nonPawnMaterial));
+			
+			squareValue += middlegameWeight * positionValue[piece.getType()][position.row()][position.column()] +
+				(1.0f - middlegameWeight) * positionValue[piece.getType() + 1][position.row()][position.column()];
+		}
 	}
 
 	this->evaluation += squareValue;
@@ -551,16 +574,37 @@ void Board::removePiece(const Piece piece, const bool silent)
 
 	if (piece.getColor() == Piece::Color::BLACK)
 	{
-		// The position value table must be inverted for black pieces
-		squareValue += positionValue[piece.getType()][7 - position.row()][position.column()];
+		if (piece.getType() != Piece::Type::KING) // Normal piece
+		{
+			// The position value table must be inverted for black pieces
+			squareValue += positionValue[piece.getType()][7 - position.row()][position.column()];
+		}
+		else // King (weighted positional advantage from middlegame and endgame)
+		{
+			float middlegameWeight = (1.0f * std::max(0, this->nonPawnMaterial - this->endgameTreshold)) / (1.0f * (this->startingNonPawnMaterial - this->nonPawnMaterial));
+
+			// The position value table must be inverted for black pieces
+			squareValue += middlegameWeight * positionValue[piece.getType()][7 - position.row()][position.column()] +
+				(1.0f - middlegameWeight) * positionValue[piece.getType() + 1][7 - position.row()][position.column()];
+		}
 
 		// The value of the square is negative for black pieces
 		squareValue = -squareValue;
 	}
 	else
 	{
-		// Simply add the positional value for a white piece
-		squareValue += positionValue[piece.getType()][position.row()][position.column()];
+		if (piece.getType() != Piece::Type::KING) // Normal piece
+		{
+			// Simply add the positional value for a white piece
+			squareValue += positionValue[piece.getType()][position.row()][position.column()];
+		}
+		else // King (weighted positional advantage from middlegame and endgame)
+		{
+			float middlegameWeight = (1.0f * std::max(0, this->nonPawnMaterial - this->endgameTreshold)) / (1.0f * (this->startingNonPawnMaterial - this->nonPawnMaterial));
+
+			squareValue += middlegameWeight * positionValue[piece.getType()][position.row()][position.column()] +
+				(1.0f - middlegameWeight) * positionValue[piece.getType() + 1][position.row()][position.column()];
+		}
 	}
 
 	this->evaluation -= squareValue;

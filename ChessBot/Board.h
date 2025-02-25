@@ -169,6 +169,11 @@ private:
 	// Value of all non pawn pieces on the board
 	int nonPawnMaterial;
 
+	// Value of all non pawn pieces on the board at the start of the game
+	int startingNonPawnMaterial;
+
+	static const int endgameTreshold = 1300;
+
 	// Number of seconds available for searching the best move
 	static const int searchTime = 10;
 
