@@ -1570,7 +1570,7 @@ Board::minimaxResult Board::minimax(int depth, int ply, int alpha, int beta, con
 	GameState gameState = this->getGameState(whiteToMove ? Piece::Color::WHITE : Piece::Color::BLACK, moves);
 
 	// Check for checkmate
-	if (gameState == GameState::CHECKMATE) // TODO Choose the fastest mate
+	if (gameState == GameState::CHECKMATE)
 		return whiteToMove ? Board::minimaxResult(Move(), INT_MIN + 1 + ply) : Board::minimaxResult(Move(), INT_MAX - 1 - ply);
 	
 	// Check for stalemate
