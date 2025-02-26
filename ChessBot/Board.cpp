@@ -520,7 +520,7 @@ void Board::addPiece(const Piece piece, const bool silent)
 		}
 		else // King (weighted positional advantage from middlegame and endgame)
 		{
-			float middlegameWeight = (1.0f * std::max(0, this->nonPawnMaterial - this->endgameTreshold)) / (1.0f * (this->startingNonPawnMaterial - this->nonPawnMaterial));
+			float middlegameWeight = (1.0f * std::max(0, this->nonPawnMaterial - this->endgameTreshold)) / (1.0f * (this->startingNonPawnMaterial - this->endgameTreshold));
 			
 			// The position value table must be inverted for black pieces
 			squareValue += middlegameWeight * positionValue[piece.getType()][7 - position.row()][position.column()] +
@@ -539,7 +539,7 @@ void Board::addPiece(const Piece piece, const bool silent)
 		}
 		else // King (weighted positional advantage from middlegame and endgame)
 		{
-			float middlegameWeight = (1.0f * std::max(0, this->nonPawnMaterial - this->endgameTreshold)) / (1.0f * (this->startingNonPawnMaterial - this->nonPawnMaterial));
+			float middlegameWeight = (1.0f * std::max(0, this->nonPawnMaterial - this->endgameTreshold)) / (1.0f * (this->startingNonPawnMaterial - this->endgameTreshold));
 			
 			squareValue += middlegameWeight * positionValue[piece.getType()][position.row()][position.column()] +
 				(1.0f - middlegameWeight) * positionValue[piece.getType() + 1][position.row()][position.column()];
@@ -581,8 +581,8 @@ void Board::removePiece(const Piece piece, const bool silent)
 		}
 		else // King (weighted positional advantage from middlegame and endgame)
 		{
-			float middlegameWeight = (1.0f * std::max(0, this->nonPawnMaterial - this->endgameTreshold)) / (1.0f * (this->startingNonPawnMaterial - this->nonPawnMaterial));
-
+			float middlegameWeight = (1.0f * std::max(0, this->nonPawnMaterial - this->endgameTreshold)) / (1.0f * (this->startingNonPawnMaterial - this->endgameTreshold));
+			
 			// The position value table must be inverted for black pieces
 			squareValue += middlegameWeight * positionValue[piece.getType()][7 - position.row()][position.column()] +
 				(1.0f - middlegameWeight) * positionValue[piece.getType() + 1][7 - position.row()][position.column()];
@@ -600,8 +600,8 @@ void Board::removePiece(const Piece piece, const bool silent)
 		}
 		else // King (weighted positional advantage from middlegame and endgame)
 		{
-			float middlegameWeight = (1.0f * std::max(0, this->nonPawnMaterial - this->endgameTreshold)) / (1.0f * (this->startingNonPawnMaterial - this->nonPawnMaterial));
-
+			float middlegameWeight = (1.0f * std::max(0, this->nonPawnMaterial - this->endgameTreshold)) / (1.0f * (this->startingNonPawnMaterial - this->endgameTreshold));
+	
 			squareValue += middlegameWeight * positionValue[piece.getType()][position.row()][position.column()] +
 				(1.0f - middlegameWeight) * positionValue[piece.getType() + 1][position.row()][position.column()];
 		}
