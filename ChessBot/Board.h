@@ -135,6 +135,26 @@ private:
 	bool isValid(const Move move, const Piece::Color playerToMove);
 
 
+	// Number of plies to exit early game
+	static const int earlyGamePlyThreshold = 20;
+
+	// Bonus for developing pieces
+	static const int developBonus = 10;
+
+	// Penalty that applies to the evaluation if one player moves the same piece in the early game
+	static const int earlyGameSamePiecePenalty = 40;
+
+	// TODO Count the number of penalties to apply to each color
+	// Flags for the early game same piece penalty (position 0 for white, position 1 for black)
+	bool earlyGameSamePiecePenaltyApplied[2] = { false, false };
+
+	// Apply a penalty if the given player moves the same piece multiple times in the early game. Returns true if the penalty is applied, false otherwise
+	void applyEarlyGameSamePiecePenalty(const Piece::Color playerToMove, const Move moveToMake);
+
+	// Set the flag of the early game same piece penalty to the given state
+	void setEarlyGameSamePiecePenalty(const Piece::Color playerToMove, const bool state);
+
+
 	// Value of the zobrist hash for the current state of the table;
 	uint64_t zobristHash;
 

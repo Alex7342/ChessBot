@@ -1408,6 +1408,41 @@ bool Board::isValid(const Move move, const Piece::Color playerToMove)
 	return !kingInCheck;
 }
 
+void Board::applyEarlyGameSamePiecePenalty(const Piece::Color playerToMove, const Move moveToMake)
+{
+	// If this is the first move of the current player, then there is no penalty applied
+	if (this->addedPieces.size() < 2)
+		return;
+
+	// If the game enterd middle game the penalty is no longer applied
+	if (this->addedPieces.size() > earlyGamePlyThreshold)
+		return;
+
+	// If the piece the player moves now has already been moved then the penalty may be applied
+	if (this->getPiece(moveToMake.getInitialPosition()).hasMoved())
+	{
+		Piece::Color otherColor = playerToMove == Piece::Color::WHITE ? Piece::Color::BLACK : Piece::Color::WHITE;
+
+		// Do not apply the penalty if the move is a capture
+		if (this->getPiece(moveToMake.getTargetPosition()).getColor() == otherColor)
+			return;
+
+		// Do not apply the penalty if the piece to move is attacked
+		if (!this->isAttackedBy(moveToMake.getInitialPosition(), otherColor))
+			return;
+
+		// Update the penalty flag for the current player
+		int colorIndex = getColorIndex(playerToMove);
+		this->earlyGameSamePiecePenaltyApplied[colorIndex] = true;
+	}
+}
+
+void Board::setEarlyGameSamePiecePenalty(Piece::Color playerToMove, const bool state)
+{
+	int colorIndex = getColorIndex(playerToMove);
+	this->earlyGameSamePiecePenaltyApplied[colorIndex] = state;
+}
+
 void Board::passTheTurn()
 {
 	this->zobristHash = this->zobristHash ^ this->blackToMoveZobristValue;
@@ -1525,7 +1560,34 @@ void Board::undoMove()
 // Compute the value of the current state of the board (positive values are better for white and negative values are better for black)
 int Board::evaluate() const
 {
-	return this->evaluation;
+	int result = this->evaluation;
+	
+	// Check if the game is in the early game
+	if (this->addedPieces.size() <= earlyGamePlyThreshold)
+	{
+		// Check if white has a penalty
+		if (this->earlyGameSamePiecePenaltyApplied[0])
+			result -= earlyGameSamePiecePenalty;
+
+		// Check if black has a penalty
+		if (this->earlyGameSamePiecePenaltyApplied[1])
+			result += earlyGameSamePiecePenalty;
+
+		// Give bonuses for developed pieces
+		for (int column = 1; column <= 6; column++)
+			if (column != 4)
+			{
+				// Check if the white minor pieces or the queen developed
+				if (this->board[7][column].getType() == Piece::Type::NONE || this->board[7][column].hasMoved())
+					result += developBonus;
+
+				// Check if the black minor pieces or the queen developed
+				if (this->board[0][column].getType() == Piece::Type::NONE || this->board[7][column].hasMoved())
+					result -= developBonus;
+			}
+	}
+
+	return result;
 }
 
 Move Board::getBestMove(const Piece::Color playerToMove)
@@ -1641,6 +1703,9 @@ Board::minimaxResult Board::minimax(int depth, int ply, int alpha, int beta, con
 			if (this->stopSearch.load())
 				return Board::minimaxResult(Move(), 0);
 
+			bool earlyGamePenaltyFlag = this->earlyGameSamePiecePenaltyApplied[0]; // Store the flag for the early game penalty
+			this->applyEarlyGameSamePiecePenalty(Piece::Color::WHITE, move); // Check for early game penalty
+
 			this->makeMove(move); // Make the current move
 			this->passTheTurn(); // Change the player
 
@@ -1657,6 +1722,9 @@ Board::minimaxResult Board::minimax(int depth, int ply, int alpha, int beta, con
 
 			this->undoMove(); // Undo the current move to bring the table back to its original state
 			this->passTheTurn(); // Return to the original player
+
+			// Set the flag of early game penalty to its previous value
+			this->setEarlyGameSamePiecePenalty(Piece::Color::WHITE, earlyGamePenaltyFlag);
 
 			if (beta <= alpha)
 				break;
@@ -1688,6 +1756,9 @@ Board::minimaxResult Board::minimax(int depth, int ply, int alpha, int beta, con
 			if (this->stopSearch.load())
 				return Board::minimaxResult(Move(), 0);
 
+			bool earlyGamePenaltyFlag = this->earlyGameSamePiecePenaltyApplied[1]; // Store the flag for the early game penalty
+			this->applyEarlyGameSamePiecePenalty(Piece::Color::BLACK, move); // Check for early game penalty
+
 			this->makeMove(move); // Make the current move
 			this->passTheTurn(); // Change the player
 
@@ -1704,6 +1775,9 @@ Board::minimaxResult Board::minimax(int depth, int ply, int alpha, int beta, con
 
 			this->undoMove(); // Undo the current move to bring the table back to its original state
 			this->passTheTurn(); // Return to the original player
+
+			// Set the flag of early game penalty to its previous value
+			this->setEarlyGameSamePiecePenalty(Piece::Color::BLACK, earlyGamePenaltyFlag);
 
 			if (beta <= alpha)
 				break;
