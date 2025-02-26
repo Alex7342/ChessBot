@@ -128,9 +128,6 @@ private:
 	void enPassant(const Move move);
 
 
-	// The move stored in the transposition table for the current state of the board
-	Move transpositionTableMove;
-
 	// Function to compare probable move value
 	bool compareMoves(const Move& firstMove, const Move& secondMove) const;
 
